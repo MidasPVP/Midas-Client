@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Midas Client</title>
+<style>
+	:root {
+		--bg: #0b0b10;
+		--panel: rgba(255,255,255,0.06);
+		--panel-solid: #131318;
+		--panel-2: rgba(255,255,255,0.10);
+		--border: rgba(255,255,255,0.10);
+		--text: #f5f5f8;
+		--text-dim: #a3a3b0;
+		--accent: #8b5cf6;
+		--accent-2: #6d28d9;
+		--accent-soft: rgba(139, 92, 246, 0.18);
+	}
+	* { box-sizing: border-box; }
+	html, body {
+		margin: 0; padding: 0; height: 100%;
+		font-family: 'Segoe UI', system-ui, sans-serif;
+		background: var(--bg);
+		color: var(--text);
+		overflow: hidden;
+		user-select: none;
+	}
+	.screen { position: fixed; inset: 0; display: none; }
+	.screen.visible { display: flex; }
+
+	/* ================= WELCOME SCREEN ================= */
+	.welcome-left {
+		width: 420px;
+		background: linear-gradient(180deg, #121218 0%, #0a0a0e 100%);
+		display: flex; flex-direction: column; justify-content: center;
+		padding: 60px 56px;
+		flex-shrink: 0;
+		box-shadow: 8px 0 40px rgba(0,0,0,0.5);
+		z-index: 2;
+	}
+	.wordmark {
+		font-size: 40px; font-weight: 800; letter-spacing: 2px;
+		background: linear-gradient(135deg, #c4b5fd, var(--accent));
+		-webkit-background-clip: text; background-clip: text; color: transparent;
+		margin-bottom: 40px;
+	}
+	.welcome-left label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 8px; letter-spacing: .5px; }
+	.glossy-input {
+		width: 100%;
+		background: rgba(255,255,255,0.05);
+		border: 1px solid var(--border);
+		border-radius: 12px;
+		padding: 14px 16px;
+		color: var(--text);
+		font-size: 14px;
+		margin-bottom: 24px;
+		outline: none;
+		transition: border-color .15s, background .15s;
+	}
+	.glossy-input:focus { border-color: var(--accent); background: rgba(139,92,246,0.08); }
+	.glossy-btn {
+		width: 100%;
+		border: none; border-radius: 12px;
+		padding: 15px;
+		font-size: 14px; font-weight: 700; letter-spacing: .5px;
+		color: white;
+		cursor: pointer;
+		background: linear-gradient(180deg, #a78bfa 0%, var(--accent) 55%, var(--accent-2) 100%);
+		box-shadow: 0 8px 24px rgba(139,92,246,0.35), inset 0 1px 0 rgba(255,255,255,0.4);
+		transition: transform .1s, box-shadow .15s;
+	}
+	.glossy-btn:hover { box-shadow: 0 10px 28px rgba(139,92,246,0.5), inset 0 1px 0 rgba(255,255,255,0.5); }
+	.glossy-btn:active { transform: scale(0.98); }
+	.welcome-hint { margin-top: 18px; font-size: 12px; color: var(--text-dim); line-height: 1.6; }
+	.welcome-right { flex: 1; position: relative; overflow: hidden; }
+	.welcome-right img {
+		position: absolute; inset: -20px;
+		width: calc(100% + 40px); height: calc(100% + 40px);
+		object-fit: cover;
+		filter: brightness(0.55) saturate(1.1);
+	}
+	.welcome-right .vignette {
+		position: absolute; inset: 0;
+		background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.55) 100%);
+	}
+
+	/* ================= APP SHELL ================= */
+	#appScreen { }
+	.bg-layer { position: absolute; inset: -30px; width: calc(100% + 60px); height: calc(100% + 60px); }
+	.bg-layer img { width: 100%; height: 100%; object-fit: cover; filter: blur(6px) brightness(0.4) saturate(1.1); }
+	.bg-layer .overlay {
+		position: absolute; inset: 0;
+		background: linear-gradient(180deg, rgba(10,10,14,0.55) 0%, rgba(8,8,12,0.35) 40%, rgba(6,6,10,0.85) 100%);
+	}
+
+	.app { position: relative; z-index: 1; display: flex; height: 100%; }
+
+	.sidebar {
+		width: 76px;
+		background: rgba(15,15,20,0.55);
+		backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+		border-right: 1px solid var(--border);
+		display: flex; flex-direction: column; align-items: center;
+		padding: 22px 0; gap: 10px; flex-shrink: 0;
+	}
+	.sidebar .logo {
+		width: 42px; height: 42px; border-radius: 13px;
+		background: linear-gradient(160deg, #c4b5fd, var(--accent) 60%, var(--accent-2));
+		display: flex; align-items: center; justify-content: center;
+		font-weight: 800; font-size: 19px;
+		box-shadow: 0 6px 18px rgba(139,92,246,0.4), inset 0 1px 0 rgba(255,255,255,0.5);
+		margin-bottom: 26px;
+	}
+	.spacer { flex: 1; }
+	.nav-btn {
+		width: 46px; height: 46px; border-radius: 13px;
+		display: flex; align-items: center; justify-content: center;
+		color: var(--text-dim); cursor: pointer; font-size: 19px;
+		transition: background .15s, color .15s;
+	}
+	.nav-btn:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+	.nav-btn.active { background: var(--accent-soft); color: #c4b5fd; box-shadow: inset 0 0 0 1px rgba(139,92,246,0.4); }
+	.nav-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+	.main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+	.topbar { display: flex; align-items: center; gap: 12px; padding: 20px 28px; }
+	.grow { flex: 1; }
+	.account {
+		display: flex; align-items: center; gap: 10px; cursor: pointer;
+		background: rgba(255,255,255,0.06);
+		backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+		border: 1px solid var(--border);
+		border-radius: 999px;
+		padding: 6px 16px 6px 6px;
+	}
+	.account:hover { background: rgba(255,255,255,0.1); }
+	.avatar { width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(135deg, #f59e0b, #ef4444); background-size: cover; }
+	.account .name { font-size: 13px; font-weight: 700; }
+	.account .sub { font-size: 11px; color: var(--text-dim); }
+
+	/* ---- home page ---- */
+	.page { display: none; flex: 1; min-height: 0; }
+	.page.visible { display: flex; }
+	#homePage { flex-direction: column; justify-content: flex-end; padding: 0 56px 56px; }
+	.eyebrow { color: #c4b5fd; font-size: 12px; font-weight: 700; letter-spacing: 2px; margin-bottom: 10px; }
+	.title { font-size: 58px; font-weight: 800; letter-spacing: 1px; margin: 0 0 14px 0; text-transform: uppercase; text-shadow: 0 4px 24px rgba(0,0,0,0.5); }
+	.desc { max-width: 620px; color: #d6d6de; font-size: 14px; line-height: 1.7; margin-bottom: 30px; text-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+	.actions { display: flex; gap: 12px; align-items: center; }
+	.btn { border: none; border-radius: 12px; padding: 15px 30px; font-size: 14px; font-weight: 700; letter-spacing: .3px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: transform .1s, box-shadow .15s; }
+	.btn:active { transform: scale(0.97); }
+	.btn-primary { color: white; background: linear-gradient(180deg, #a78bfa 0%, var(--accent) 55%, var(--accent-2) 100%); box-shadow: 0 8px 24px rgba(139,92,246,0.4), inset 0 1px 0 rgba(255,255,255,0.4); }
+	.btn-primary:hover { box-shadow: 0 10px 30px rgba(139,92,246,0.55), inset 0 1px 0 rgba(255,255,255,0.5); }
+	.btn-primary:disabled { background: #423458; box-shadow: none; cursor: default; }
+	.btn-secondary { color: var(--text); background: rgba(255,255,255,0.08); backdrop-filter: blur(12px); border: 1px solid var(--border); }
+	.btn-secondary:hover { background: rgba(255,255,255,0.13); }
+
+	.progress-wrap { margin-top: 20px; max-width: 440px; display: none; }
+	.progress-wrap.visible { display: block; }
+	.progress-label { font-size: 12px; color: var(--text-dim); margin-bottom: 6px; display: flex; justify-content: space-between; }
+	.progress-track { height: 6px; border-radius: 999px; background: rgba(255,255,255,0.08); overflow: hidden; }
+	.progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #c4b5fd, var(--accent)); transition: width .2s; box-shadow: 0 0 12px rgba(139,92,246,0.6); }
+
+	.log-toggle { font-size: 12px; color: var(--text-dim); margin-top: 16px; cursor: pointer; width: fit-content; }
+	.log-toggle:hover { color: var(--text); }
+	.log-box { display: none; margin-top: 10px; max-width: 640px; max-height: 150px; overflow-y: auto; background: rgba(10,10,14,0.7); backdrop-filter: blur(10px); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; font-family: Consolas, monospace; font-size: 11px; color: var(--text-dim); white-space: pre-wrap; }
+	.log-box.visible { display: block; }
+
+	/* ---- settings page ---- */
+	#settingsPage { overflow: hidden; }
+	.settings-nav {
+		width: 220px; flex-shrink: 0; padding: 32px 20px;
+		background: rgba(12,12,16,0.35);
+		border-right: 1px solid var(--border);
+		overflow-y: auto;
+	}
+	.settings-nav h3 { font-size: 11px; letter-spacing: 1.5px; color: var(--text-dim); margin: 0 0 10px 4px; text-transform: uppercase; }
+	.settings-nav .item {
+		padding: 10px 14px; border-radius: 10px; font-size: 13px; color: var(--text-dim);
+		cursor: pointer; margin-bottom: 2px; transition: background .15s, color .15s;
+	}
+	.settings-nav .item:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+	.settings-nav .item.active { background: var(--accent-soft); color: #c4b5fd; }
+	.settings-nav .section { margin-bottom: 22px; }
+
+	.settings-body { flex: 1; padding: 40px 48px; overflow-y: auto; }
+	.settings-title { font-size: 22px; font-weight: 800; margin: 0 0 24px 0; }
+	.card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+	.card {
+		background: rgba(255,255,255,0.05);
+		backdrop-filter: blur(16px);
+		border: 1px solid var(--border);
+		border-radius: 16px;
+		padding: 22px;
+	}
+	.card h4 { margin: 0 0 4px 0; font-size: 13px; letter-spacing: .5px; }
+	.card .card-sub { font-size: 11px; color: var(--text-dim); margin-bottom: 16px; }
+	.card .row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 13px; border-bottom: 1px solid var(--border); }
+	.card .row:last-child { border-bottom: none; }
+	.card .row span:first-child { color: var(--text-dim); }
+	.skin-card { grid-column: span 2; display: flex; align-items: center; gap: 24px; }
+	.skin-card img { width: 90px; image-rendering: pixelated; border-radius: 10px; background: rgba(255,255,255,0.04); }
+	.settings-field { margin-bottom: 18px; }
+	.settings-field label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 8px; }
+	.settings-field input[type=range] { width: 100%; accent-color: var(--accent); }
+	.settings-field .value { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+	.mod-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+	.mod-row:last-child { border-bottom: none; }
+	.mod-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+	.mod-row .mod-name { flex: 1; }
+	.mod-row .mod-ver { color: var(--text-dim); font-size: 11px; }
+</style>
+</head>
+<body>
+
+<div class="screen visible" id="welcomeScreen">
+	<div class="welcome-left">
+		<div class="wordmark">MIDAS</div>
+		<label>Display name</label>
+		<input class="glossy-input" type="text" id="usernameInput" value="Player" placeholder="Choose a name">
+		<button class="glossy-btn" onclick="continueFromWelcome()">CONTINUE</button>
+		<div class="welcome-hint">This just names your local Minecraft profile. Once the game is running, sign in with your real Microsoft account through the Account Switcher (Esc menu).</div>
+	</div>
+	<div class="welcome-right">
+		<img src="bg.jpg" alt="">
+		<div class="vignette"></div>
+	</div>
+</div>
+
+<div class="screen" id="appScreen">
+	<div class="bg-layer"><img src="bg.jpg" alt=""><div class="overlay"></div></div>
+	<div class="app">
+		<div class="sidebar">
+			<div class="logo">M</div>
+			<div class="nav-btn" title="Profile" onclick="showSettings('profile')"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+			<div class="nav-btn active" id="navHome" title="Home" onclick="showHome()"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg></div>
+			<div class="nav-btn" id="navMods" title="Mods" onclick="showSettings('mods')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg></div>
+			<div class="nav-btn" id="navSettings" onclick="showSettings('java')" title="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+			<div class="spacer"></div>
+			<div class="nav-btn" title="Downloads"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+		</div>
+
+		<div class="main">
+			<div class="topbar">
+				<div class="grow"></div>
+				<div class="account" onclick="showSettings('profile')">
+					<div class="avatar" id="avatarImg"></div>
+					<div>
+						<div class="name" id="accountName">Player</div>
+						<div class="sub">Local profile</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- ===== HOME PAGE ===== -->
+			<div class="page visible" id="homePage">
+				<div class="eyebrow">MIDASPVP &middot; FABRIC 1.21.11</div>
+				<h1 class="title">Midas&nbsp;Client</h1>
+				<p class="desc">
+					The official launcher for MidasPVP. Launches Fabric with Tier&nbsp;Tagger and the
+					In-Game Account Switcher pre-installed &mdash; sign in with your real Microsoft
+					account from inside the game once it's running.
+				</p>
+				<div class="actions">
+					<button class="btn btn-primary" id="playBtn" onclick="onPlay()">&#9654;&nbsp; PLAY</button>
+					<button class="btn btn-secondary" onclick="showSettings('java')">&#9881;&nbsp; SETTINGS</button>
+				</div>
+				<div class="progress-wrap" id="progressWrap">
+					<div class="progress-label"><span id="progressStage">Preparing...</span><span id="progressCount"></span></div>
+					<div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+				</div>
+				<div class="log-toggle" onclick="toggleLog()">Show log &#9662;</div>
+				<div class="log-box" id="logBox"></div>
+			</div>
+
+			<!-- ===== SETTINGS PAGE ===== -->
+			<div class="page" id="settingsPage">
+				<div class="settings-nav">
+					<div class="section">
+						<h3>Profile</h3>
+						<div class="item" id="tab-profile" onclick="showSettings('profile')">Local Profile</div>
+					</div>
+					<div class="section">
+						<h3>Game</h3>
+						<div class="item" id="tab-java" onclick="showSettings('java')">Java &amp; Memory</div>
+						<div class="item" id="tab-mods" onclick="showSettings('mods')">Installed Mods</div>
+						<div class="item" id="tab-about" onclick="showSettings('about')">About</div>
+					</div>
+				</div>
+				<div class="settings-body">
+
+					<div id="panel-profile" style="display:none">
+						<h2 class="settings-title">Local Profile</h2>
+						<div class="card-grid">
+							<div class="card skin-card">
+								<img id="skinPreview" src="" alt="">
+								<div>
+									<h4>Skin Preview</h4>
+									<div class="card-sub">Fetched by name &mdash; only accurate once you've signed in for real via Account Switcher.</div>
+									<div class="settings-field" style="margin-bottom:0">
+										<label>Display name</label>
+										<input class="glossy-input" style="margin-bottom:0" type="text" id="usernameInput2" value="Player" oninput="onNameInput()">
+									</div>
+								</div>
+							</div>
+							<div class="card">
+								<h4>Real Account</h4>
+								<div class="card-sub">Handled in-game, not by this launcher</div>
+								<div class="row"><span>Microsoft sign-in</span><span>Account Switcher (Esc)</span></div>
+								<div class="row"><span>This launcher stores</span><span>display name only</span></div>
+							</div>
+						</div>
+					</div>
+
+					<div id="panel-java" style="display:none">
+						<h2 class="settings-title">Java &amp; Memory</h2>
+						<div class="card" style="max-width:460px">
+							<div class="settings-field">
+								<label>Memory Allocation</label>
+								<input type="range" id="ramSlider" min="1024" max="8192" step="512" value="2048" oninput="updateRamLabel()">
+								<div class="value"><span id="ramValue">2048</span> MB</div>
+							</div>
+							<div class="row"><span>Java runtime</span><span id="javaHomeVal">system default</span></div>
+						</div>
+					</div>
+
+					<div id="panel-mods" style="display:none">
+						<h2 class="settings-title">Installed Mods</h2>
+						<div class="card" style="max-width:520px">
+							<div class="mod-row"><span class="mod-dot"></span><span class="mod-name">Fabric API</span><span class="mod-ver">0.141.6+1.21.11</span></div>
+							<div class="mod-row"><span class="mod-dot"></span><span class="mod-name">Tier Tagger</span><span class="mod-ver">1.0.0</span></div>
+							<div class="mod-row"><span class="mod-dot"></span><span class="mod-name">In-Game Account Switcher</span><span class="mod-ver">9.0.7</span></div>
+						</div>
+					</div>
+
+					<div id="panel-about" style="display:none">
+						<h2 class="settings-title">About</h2>
+						<div class="card" style="max-width:460px">
+							<div class="row"><span>Midas Client</span><span>1.0.0</span></div>
+							<div class="row"><span>Minecraft</span><span>1.21.11</span></div>
+							<div class="row"><span>Fabric Loader</span><span>0.19.3</span></div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	function continueFromWelcome() {
+		var name = document.getElementById('usernameInput').value || 'Player';
+		setUsername(name);
+		document.getElementById('welcomeScreen').classList.remove('visible');
+		document.getElementById('appScreen').classList.add('visible');
+	}
+
+	function setUsername(name) {
+		document.getElementById('accountName').textContent = name;
+		document.getElementById('usernameInput2').value = name;
+		document.getElementById('skinPreview').src = 'https://mc-heads.net/body/' + encodeURIComponent(name) + '/100';
+		document.getElementById('avatarImg').style.backgroundImage = "url('https://mc-heads.net/avatar/" + encodeURIComponent(name) + "/64')";
+	}
+	function onNameInput() {
+		var name = document.getElementById('usernameInput2').value || 'Player';
+		setUsername(name);
+		document.getElementById('usernameInput').value = name;
+	}
+
+	function updateRamLabel() { document.getElementById('ramValue').textContent = document.getElementById('ramSlider').value; }
+
+	function showHome() {
+		document.getElementById('homePage').classList.add('visible');
+		document.getElementById('settingsPage').classList.remove('visible');
+		setActiveNav('navHome');
+	}
+	function showSettings(tab) {
+		document.getElementById('homePage').classList.remove('visible');
+		document.getElementById('settingsPage').classList.add('visible');
+		['profile','java','mods','about'].forEach(function(t) {
+			document.getElementById('panel-' + t).style.display = (t === tab) ? 'block' : 'none';
+			document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+		});
+		setActiveNav(tab === 'mods' ? 'navMods' : 'navSettings');
+	}
+	function setActiveNav(id) {
+		['navHome','navMods','navSettings'].forEach(function(n) {
+			document.getElementById(n).classList.toggle('active', n === id);
+		});
+	}
+
+	function toggleLog() { document.getElementById('logBox').classList.toggle('visible'); }
+
+	function onPlay() {
+		var btn = document.getElementById('playBtn');
+		btn.disabled = true;
+		btn.textContent = 'STARTING...';
+		document.getElementById('progressWrap').classList.add('visible');
+		var username = document.getElementById('usernameInput2').value || document.getElementById('usernameInput').value || 'Player';
+		if (window.midas) window.midas.play(username);
+		else appendLog('[error] Java bridge not available');
+	}
+
+	// ---- called from Java ----
+	function onLog(line) { appendLog(line); }
+	function onProgress(stage, done, total) {
+		document.getElementById('progressStage').textContent = stage;
+		if (total > 0) {
+			document.getElementById('progressCount').textContent = done + ' / ' + total;
+			document.getElementById('progressFill').style.width = Math.round((done / total) * 100) + '%';
+		} else {
+			document.getElementById('progressCount').textContent = '';
+			document.getElementById('progressFill').style.width = '100%';
+		}
+	}
+	function onLaunched() { document.getElementById('playBtn').innerHTML = '&#9654;&nbsp; RUNNING'; }
+	function onError(message) {
+		var btn = document.getElementById('playBtn');
+		btn.disabled = false;
+		btn.innerHTML = '&#9654;&nbsp; PLAY';
+		appendLog('[error] ' + message);
+	}
+	function onExit(code) {
+		var btn = document.getElementById('playBtn');
+		btn.disabled = false;
+		btn.innerHTML = '&#9654;&nbsp; PLAY';
+	}
+	function appendLog(line) {
+		var box = document.getElementById('logBox');
+		box.textContent += line + '\n';
+		box.scrollTop = box.scrollHeight;
+	}
+
+	setUsername('Player');
+</script>
+</body>
+</html>

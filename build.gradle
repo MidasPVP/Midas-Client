@@ -1,0 +1,42 @@
+plugins {
+	id 'application'
+	id 'com.gradleup.shadow' version '8.3.9'
+}
+
+repositories {
+	mavenCentral()
+}
+
+def jfxVersion = '21.0.5'
+
+dependencies {
+	implementation 'com.google.code.gson:gson:2.13.2'
+	implementation "org.openjfx:javafx-base:${jfxVersion}:win"
+	implementation "org.openjfx:javafx-graphics:${jfxVersion}:win"
+	implementation "org.openjfx:javafx-controls:${jfxVersion}:win"
+	implementation "org.openjfx:javafx-web:${jfxVersion}:win"
+	implementation "org.openjfx:javafx-media:${jfxVersion}:win"
+}
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+application {
+	mainClass = 'com.midaspvp.launcher.Launcher'
+}
+
+shadowJar {
+	archiveBaseName = 'MidasLauncher'
+	archiveClassifier = ''
+	archiveVersion = ''
+	manifest {
+		attributes 'Main-Class': 'com.midaspvp.launcher.Launcher'
+	}
+}
+
+tasks.build {
+	dependsOn shadowJar
+}
