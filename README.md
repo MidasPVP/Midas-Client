@@ -50,3 +50,14 @@ get copied into the game instance on first launch.
   the Java backend through a small `window.midas` JS↔Java bridge (`Main.Bridge`).
 
 No account credentials of any kind are collected, stored, or transmitted by this launcher.
+
+## License
+
+The launcher's own source code is [MIT licensed](LICENSE) — do what you want with it.
+
+The mod jars in `mods-bundle/` are third-party software redistributed unmodified under their
+own licenses:
+
+- **Fabric API** — Apache License 2.0
+- **In-Game Account Switcher** by VidTu — GNU LGPL v3.0-or-later
+- **Tier Tagger** — MIT, from [MidasPVP/tiertagger](https://github.com/MidasPVP)
