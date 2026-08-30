@@ -123,6 +123,13 @@ public final class Main extends Application {
 			thread.start();
 		}
 
+		/** Called from JS: window.midas.fetchPlayerStats(username) — result comes back via onPlayerStats(json). */
+		public void fetchPlayerStats(String username) {
+			Thread thread = new Thread(() -> call("onPlayerStats", TierApi.fetchPlayer(username)), "midas-tier-stats");
+			thread.setDaemon(true);
+			thread.start();
+		}
+
 		/** Called from JS: window.midas.installMod(slug, version) — installs into that version's mods folder. */
 		public void installMod(String slug, String version) {
 			Thread thread = new Thread(() -> {

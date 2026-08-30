@@ -58,9 +58,15 @@ on PATH) and `jpackage` (bundled with the JDK since 14):
 mkdir jpackage-input && cp build/libs/MidasLauncher.jar jpackage-input/
 jpackage --type msi --name "Midas Client" --input jpackage-input \
   --main-jar MidasLauncher.jar --main-class com.midaspvp.launcher.Launcher \
-  --app-content mods-bundle --dest dist-msi --vendor MidasPVP --app-version 1.0.0 \
-  --win-menu --win-menu-group "MidasPVP" --win-shortcut --win-dir-chooser --win-per-user-install
+  --app-content mods-bundle --dest dist-msi --vendor MidasPVP --app-version 1.1.1 \
+  --win-menu --win-menu-group "MidasPVP" --win-shortcut --win-dir-chooser --win-per-user-install \
+  --jlink-options "--strip-debug --no-man-pages --no-header-files"
 ```
+
+The `--jlink-options` override is required: jpackage's default jlink options strip
+`java.exe`/`javaw.exe` from the bundled runtime (via `--strip-native-commands`), which breaks
+`GameLauncher` spawning a separate `java` process to run Minecraft. Omitting the default's strip
+flag keeps those binaries.
 
 Bumping the version needs two edits kept in sync: `--app-version` above, and
 `UpdateChecker.APP_VERSION` in source (used for the update-check comparison).

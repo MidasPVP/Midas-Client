@@ -119,21 +119,6 @@
 	.account .name { font-size: 13px; font-weight: 700; color: #fff; }
 	.account .sub { font-size: 11px; color: rgba(255,255,255,0.40); }
 
-	/* download progress pill */
-	.download-progress {
-		display: flex; align-items: center; gap: 14px;
-		background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 9999px;
-		padding: 6px 20px 6px 18px; backdrop-filter: blur(4px); flex: 1; min-width: 220px; display: none;
-	}
-	.download-progress.visible { display: flex; }
-	.download-progress .icon { color: rgba(255,215,0,0.60); }
-	.download-progress .icon svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; }
-	.download-progress .info { display: flex; flex-direction: column; flex: 1; }
-	.download-progress .info .title { color: rgba(255,255,255,0.70); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
-	.download-progress .info .bar-bg { width: 100%; height: 4px; background: rgba(255,255,255,0.08); border-radius: 9999px; margin-top: 4px; overflow: hidden; }
-	.download-progress .info .bar-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #FFD700, #DAA520); border-radius: 9999px; transition: width .2s; }
-	.download-progress .percentage { color: rgba(255,215,0,0.85); font-size: 13px; font-weight: 700; margin-left: 6px; }
-
 	/* ---- pages ---- */
 	.page { display: none; flex: 1; min-height: 0; flex-direction: column; }
 	.page.visible { display: flex; }
@@ -149,20 +134,39 @@
 	.server-tab.active { color: #000; background: linear-gradient(135deg, #FFD700, #DAA520); border-color: transparent; }
 
 	.middle-section { display: flex; flex: 1; gap: 24px; min-height: 0; }
-	.left-col { flex: 2; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+	.left-col { flex: 2; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 
-	.server-title { font-size: 34px; font-weight: 900; color: #fff; letter-spacing: .5px; text-transform: uppercase; }
-	.server-desc { color: rgba(255,255,255,0.50); font-size: 13px; line-height: 1.6; max-width: 560px; margin-top: 4px; }
+	/* hero banner: version + inline download progress */
+	.hero-card {
+		position: relative; border-radius: 18px; overflow: hidden; height: 210px; flex-shrink: 0;
+		border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+	}
+	.hero-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(0.55) saturate(1.1); }
+	.hero-card .hero-vignette { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.75) 100%); }
+	.hero-content { position: relative; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 0 40px; text-align: center; }
+	.hero-server { color: var(--gold); font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; opacity: .85; }
+	.hero-version { font-size: 46px; font-weight: 900; color: #fff; letter-spacing: 1px; text-shadow: 0 4px 24px rgba(0,0,0,0.6); }
+	.hero-progress { width: 100%; max-width: 420px; display: flex; align-items: center; gap: 10px; }
+	.hero-progress .bar-bg { flex: 1; height: 5px; background: rgba(255,255,255,0.15); border-radius: 9999px; overflow: hidden; }
+	.hero-progress .bar-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #FFD700, #DAA520); border-radius: 9999px; transition: width .2s; }
+	.hero-progress .stage-text { color: rgba(255,255,255,0.75); font-size: 12px; font-weight: 600; white-space: nowrap; }
+	.hero-progress .pct-text { color: rgba(255,215,0,0.85); font-size: 12px; font-weight: 700; white-space: nowrap; }
 
+	.play-row { display: flex; justify-content: center; }
 	.play-btn {
 		background: linear-gradient(135deg, var(--red), var(--red-dark));
-		border: none; border-radius: 9999px; padding: 16px 40px; font-size: 20px; font-weight: 800; color: #fff;
+		border: none; border-radius: 9999px; padding: 16px 48px; font-size: 20px; font-weight: 800; color: #fff;
 		letter-spacing: 1px; cursor: pointer; box-shadow: 0 0 30px rgba(255,0,0,0.45), 0 0 60px rgba(255,0,0,0.20);
-		transition: transform .2s, box-shadow .2s; display: inline-flex; align-items: center; justify-content: center;
-		gap: 12px; width: fit-content; min-width: 200px; font-family: inherit; margin-top: 14px;
+		transition: transform .2s; display: inline-flex; align-items: center; justify-content: center;
+		gap: 12px; width: fit-content; min-width: 220px; font-family: inherit;
+		animation: playGlow 2.2s ease-in-out infinite;
 	}
-	.play-btn:hover { transform: scale(1.03); box-shadow: 0 0 45px rgba(255,0,0,0.60), 0 0 75px rgba(255,0,0,0.30); }
-	.play-btn:disabled { background: #4a1010; box-shadow: none; cursor: default; transform: none; }
+	@keyframes playGlow {
+		0%, 100% { box-shadow: 0 0 30px rgba(255,0,0,0.45), 0 0 60px rgba(255,0,0,0.20); }
+		50% { box-shadow: 0 0 42px rgba(255,0,0,0.70), 0 0 80px rgba(255,0,0,0.35); }
+	}
+	.play-btn:hover { transform: scale(1.03); }
+	.play-btn:disabled { background: #4a1010; box-shadow: none; cursor: default; transform: none; animation: none; }
 	.play-btn svg { width: 22px; height: 22px; fill: currentColor; stroke: none; }
 
 	.logs-panel {
@@ -176,16 +180,55 @@
 	.log-content::-webkit-scrollbar { width: 3px; }
 	.log-content::-webkit-scrollbar-thumb { background: rgba(255,215,0,0.25); border-radius: 9999px; }
 
-	.right-col {
-		flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px;
-		padding: 18px 20px; backdrop-filter: blur(4px); display: flex; flex-direction: column; gap: 12px; min-width: 200px;
+	.bottom-row { display: flex; }
+	.mod-list-pill {
+		display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+		border-radius: 9999px; padding: 9px 10px 9px 18px; color: rgba(255,255,255,0.75); font-size: 12px; font-weight: 700;
+		letter-spacing: .5px; cursor: pointer; font-family: inherit; transition: all .15s;
 	}
-	.right-col .info-title { color: rgba(255,255,255,0.30); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; }
-	.right-col .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
-	.right-col .info-item { display: flex; flex-direction: column; }
-	.right-col .info-item .label { color: rgba(255,255,255,0.30); font-size: 10px; text-transform: uppercase; letter-spacing: .3px; }
-	.right-col .info-item .value { color: rgba(255,255,255,0.88); font-size: 14px; font-weight: 700; margin-top: 2px; }
-	.right-col .info-item .value.gold { color: var(--gold); }
+	.mod-list-pill:hover { color: #fff; background: rgba(255,255,255,0.08); }
+	.mod-list-pill .badge {
+		background: linear-gradient(135deg, #FFD700, #DAA520); color: #000; border-radius: 9999px;
+		min-width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; padding: 0 6px;
+	}
+
+	/* right column: recent servers + player stats */
+	.right-col-wrap { flex: 1; display: flex; flex-direction: column; min-width: 220px; }
+	.recent-panel {
+		background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px 16px 0 0;
+		border-bottom: none; padding: 18px 20px 14px; backdrop-filter: blur(4px); position: relative; overflow: hidden;
+	}
+	.recent-label {
+		position: absolute; top: 6px; right: -30px; transform: rotate(28deg); transform-origin: center;
+		color: rgba(255,215,0,0.12); font-size: 13px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
+		white-space: nowrap; pointer-events: none;
+	}
+	.recent-title { color: rgba(255,255,255,0.30); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 10px; position: relative; }
+	.recent-item { display: flex; align-items: center; gap: 10px; padding: 7px 0; cursor: pointer; }
+	.recent-item:hover .recent-name { color: var(--gold); }
+	.recent-dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e; flex-shrink: 0; }
+	.recent-info { display: flex; flex-direction: column; min-width: 0; }
+	.recent-name { color: #fff; font-size: 13px; font-weight: 700; transition: color .15s; }
+	.recent-time { color: rgba(255,255,255,0.35); font-size: 10px; }
+	.recent-empty { color: rgba(255,255,255,0.30); font-size: 12px; padding: 6px 0; }
+
+	.right-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 0 20px; flex-shrink: 0; }
+
+	.stats-panel {
+		flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 0 0 16px 16px;
+		border-top: none; padding: 18px 20px; backdrop-filter: blur(4px); display: flex; flex-direction: column; gap: 10px; min-height: 0;
+	}
+	.stats-header { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+	.stats-name { color: #fff; font-size: 15px; font-weight: 800; }
+	.stats-rank { color: var(--gold); font-size: 11px; font-weight: 700; text-align: right; }
+	.stats-body { display: flex; gap: 14px; flex: 1; min-height: 0; }
+	.kit-grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; align-content: start; overflow-y: auto; }
+	.kit-chip { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border-radius: 8px; padding: 6px 9px; font-size: 11px; }
+	.kit-chip .kit-name { color: rgba(255,255,255,0.55); }
+	.kit-chip .kit-tier { color: var(--gold); font-weight: 800; }
+	.kit-chip.empty .kit-tier { color: rgba(255,255,255,0.25); }
+	.stats-skin { width: 64px; align-self: center; image-rendering: pixelated; flex-shrink: 0; }
+	.stats-empty { color: rgba(255,255,255,0.35); font-size: 12px; grid-column: 1 / -1; padding: 10px 0; }
 
 	/* ---- mods page ---- */
 	#modsPage { padding-right: 4px; }
@@ -298,14 +341,6 @@
 					<option value="26.1.2">26.1.2</option>
 					<option value="26.2">26.2</option>
 				</select>
-				<div class="download-progress" id="downloadProgress">
-					<span class="icon"><svg viewBox="0 0 24 24"><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/><polyline points="8 12 12 16 16 12"/><line x1="12" y1="2" x2="12" y2="16"/></svg></span>
-					<div class="info">
-						<span class="title" id="progressStage">Preparing...</span>
-						<div class="bar-bg"><div class="bar-fill" id="progressFill"></div></div>
-					</div>
-					<span class="percentage" id="progressCount"></span>
-				</div>
 				<div class="update-pill" id="updatePill" style="display:none" onclick="onUpdateClick()">
 					<svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
 					<span id="updatePillText">Update available</span>
@@ -325,26 +360,49 @@
 				</div>
 				<div class="middle-section">
 					<div class="left-col">
-						<div>
-							<div class="server-title" id="serverTitle">MidasPVP</div>
-							<div class="server-desc" id="serverDesc">The main MidasPVP server — tiered PvP kits, ranked leaderboards, and Tier Tagger built right in.</div>
+						<div class="hero-card">
+							<img src="hero-bg.webp" alt="">
+							<div class="hero-vignette"></div>
+							<div class="hero-content">
+								<span class="hero-server" id="heroServer">MidasPVP · midaspvp.com</span>
+								<span class="hero-version" id="heroVersion">1.21.11</span>
+								<div class="hero-progress">
+									<span class="stage-text" id="progressStage">Ready to play</span>
+									<div class="bar-bg"><div class="bar-fill" id="progressFill"></div></div>
+									<span class="pct-text" id="progressCount"></span>
+								</div>
+							</div>
 						</div>
-						<button class="play-btn" id="playBtn" onclick="onPlay()">
-							<svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-							PLAY
-						</button>
+						<div class="play-row">
+							<button class="play-btn" id="playBtn" onclick="onPlay()">
+								<svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+								PLAY
+							</button>
+						</div>
 						<div class="logs-panel">
 							<div class="header"><span>MINECRAFT LOGS</span><button class="clear-btn" onclick="document.getElementById('logContent').textContent=''">Clear</button></div>
 							<div class="log-content" id="logContent"></div>
 						</div>
+						<div class="bottom-row">
+							<button class="mod-list-pill" onclick="showMods()">MOD LIST <span class="badge" id="modCountBadge">0</span></button>
+						</div>
 					</div>
-					<div class="right-col">
-						<span class="info-title">Server Info</span>
-						<div class="info-grid">
-							<div class="info-item"><span class="label">Address</span><span class="value gold" id="serverAddressVal">midaspvp.com</span></div>
-							<div class="info-item"><span class="label">Version</span><span class="value" id="serverVersionVal">1.21.11</span></div>
-							<div class="info-item"><span class="label">Mods</span><span class="value gold">Tier Tagger</span></div>
-							<div class="info-item"><span class="label">Loader</span><span class="value">Fabric</span></div>
+					<div class="right-col-wrap">
+						<div class="recent-panel">
+							<span class="recent-label">Last servers played</span>
+							<div class="recent-title">Last Servers Played</div>
+							<div id="recentServersList"></div>
+						</div>
+						<div class="right-divider"></div>
+						<div class="stats-panel">
+							<div class="stats-header">
+								<span class="stats-name" id="statsPlayerName">Player</span>
+								<span class="stats-rank" id="statsRank"></span>
+							</div>
+							<div class="stats-body">
+								<div class="kit-grid" id="kitGrid"></div>
+								<img class="stats-skin" id="statsSkin" src="" alt="">
+							</div>
 						</div>
 					</div>
 				</div>
@@ -410,7 +468,7 @@
 					<div id="panel-about" style="display:none">
 						<h2 class="settings-title">About</h2>
 						<div class="card" style="max-width:460px">
-							<div class="row"><span>Midas Client</span><span id="aboutClientVersion">1.1.0</span></div>
+							<div class="row"><span>Midas Client</span><span id="aboutClientVersion">1.1.1</span></div>
 							<div class="row"><span>Minecraft</span><span id="aboutVersion">1.21.11</span></div>
 							<div class="row"><span>Fabric Loader</span><span>0.19.3</span></div>
 							<div class="row"><span>Supported versions</span><span>1.21.11, 26.1.2, 26.2</span></div>
@@ -440,22 +498,25 @@
 	};
 	var MODS_BY_VERSION = {
 		'1.21.11': [
-			['Fabric API', '0.141.6'], ['Tier Tagger', '1.1.0'], ['In-Game Account Switcher', '9.0.7'],
+			['Fabric API', '0.141.6'], ['Tier Tagger', '1.1.1'], ['In-Game Account Switcher', '9.0.7'],
 			['Sodium', '0.8.14'], ['Lithium', '0.21.4'], ['Simple Voice Chat', '2.6.22'],
 			['No Chat Reports', '2.18.0'], ['Zoomify', '2.15.2'], ['AppleSkin', '3.0.8'],
-			['Better Ping Display', '1.2.0'], ['Durability Tooltip', '1.1.6']
+			['Better Ping Display', '1.2.0'], ['Durability Tooltip', '1.1.6'],
+			['SuperMartijn642 Config Lib', '1.1.8'], ['Fabric Language Kotlin', '1.13.13'], ['YetAnotherConfigLib', '3.8.2']
 		],
 		'26.1.2': [
 			['Fabric API', '0.155.2'], ['In-Game Account Switcher', '9.0.7'],
 			['Sodium', '0.9.2-alpha.4'], ['Lithium', '0.24.7'], ['Simple Voice Chat', '2.6.22'],
 			['No Chat Reports', '2.19.0'], ['Zoomify', '2.16.1'], ['AppleSkin', '3.0.10'],
-			['Durability Tooltip', '1.1.6']
+			['Durability Tooltip', '1.1.6'],
+			['SuperMartijn642 Config Lib', '1.1.8'], ['Fabric Language Kotlin', '1.13.13'], ['YetAnotherConfigLib', '3.9.6']
 		],
 		'26.2': [
 			['Fabric API', '0.158.0'], ['In-Game Account Switcher', '9.0.7'],
 			['Sodium', '0.9.2-alpha.4'], ['Lithium', '0.25.3'], ['Simple Voice Chat', '2.6.22'],
 			['No Chat Reports', '2.20.2'], ['Zoomify', '2.16.1'], ['AppleSkin', '3.0.10'],
-			['Durability Tooltip', '1.1.6']
+			['Durability Tooltip', '1.1.6'],
+			['SuperMartijn642 Config Lib', '1.1.8'], ['Fabric Language Kotlin', '1.13.13'], ['YetAnotherConfigLib', '3.9.6']
 		]
 	};
 	var activeServer = 'midaspvp';
@@ -471,11 +532,23 @@
 		document.getElementById('usernameInput2').value = name;
 		document.getElementById('skinPreview').src = 'https://mc-heads.net/body/' + encodeURIComponent(name) + '/100';
 		document.getElementById('avatarImg').style.backgroundImage = "url('https://mc-heads.net/avatar/" + encodeURIComponent(name) + "/64')";
+		document.getElementById('statsSkin').src = 'https://mc-heads.net/body/' + encodeURIComponent(name) + '/80';
+		document.getElementById('statsPlayerName').textContent = name;
+		queuePlayerStatsFetch(name);
 	}
+	var nameInputTimer = null;
 	function onNameInput() {
 		var name = document.getElementById('usernameInput2').value || 'Player';
-		setUsername(name);
+		document.getElementById('accountName').textContent = name;
 		document.getElementById('usernameInput').value = name;
+		document.getElementById('avatarImg').style.backgroundImage = "url('https://mc-heads.net/avatar/" + encodeURIComponent(name) + "/64')";
+		document.getElementById('statsSkin').src = 'https://mc-heads.net/body/' + encodeURIComponent(name) + '/80';
+		document.getElementById('statsPlayerName').textContent = name;
+		clearTimeout(nameInputTimer);
+		nameInputTimer = setTimeout(function() {
+			document.getElementById('skinPreview').src = 'https://mc-heads.net/body/' + encodeURIComponent(name) + '/100';
+			queuePlayerStatsFetch(name);
+		}, 500);
 	}
 	function logout() {
 		document.getElementById('appScreen').classList.remove('visible');
@@ -485,12 +558,13 @@
 	function currentVersion() { return document.getElementById('versionSelect').value; }
 	function onVersionChange() {
 		var v = currentVersion();
-		document.getElementById('serverVersionVal').textContent = v;
+		document.getElementById('heroVersion').textContent = v;
 		document.getElementById('aboutVersion').textContent = v;
 		renderModsList(v);
 	}
 	function renderModsList(v) {
 		document.getElementById('modsVersionLabel').textContent = v;
+		document.getElementById('modCountBadge').textContent = MODS_BY_VERSION[v].length;
 		document.getElementById('modsList').innerHTML = MODS_BY_VERSION[v].map(function(m) {
 			return '<div class="mod-row"><span class="mod-dot"></span><span class="mod-name">' + m[0] + '</span><span class="mod-ver">' + m[1] + '</span></div>';
 		}).join('');
@@ -502,9 +576,79 @@
 			document.getElementById('tab-' + k).classList.toggle('active', k === key);
 		});
 		var s = SERVERS[key];
-		document.getElementById('serverTitle').textContent = s.title;
-		document.getElementById('serverDesc').textContent = s.desc;
-		document.getElementById('serverAddressVal').textContent = s.address;
+		document.getElementById('heroServer').textContent = s.title + ' · ' + s.address;
+	}
+
+	// ---- recently played servers (persisted per-viewer in the WebView's localStorage) ----
+	function loadRecentServers() {
+		try { return JSON.parse(localStorage.getItem('midas.recentServers') || '[]'); } catch (e) { return []; }
+	}
+	function pushRecentServer(key) {
+		var s = SERVERS[key];
+		if (!s) return;
+		var list = loadRecentServers().filter(function(r) { return r.key !== key; });
+		list.unshift({ key: key, title: s.title, address: s.address, time: Date.now() });
+		try { localStorage.setItem('midas.recentServers', JSON.stringify(list.slice(0, 5))); } catch (e) {}
+		renderRecentServers();
+	}
+	function timeAgo(ts) {
+		var s = Math.floor((Date.now() - ts) / 1000);
+		if (s < 60) return 'just now';
+		var m = Math.floor(s / 60); if (m < 60) return m + 'm ago';
+		var h = Math.floor(m / 60); if (h < 24) return h + 'h ago';
+		return Math.floor(h / 24) + 'd ago';
+	}
+	function renderRecentServers() {
+		var list = loadRecentServers();
+		var el = document.getElementById('recentServersList');
+		if (!list.length) { el.innerHTML = '<div class="recent-empty">No servers played yet</div>'; return; }
+		el.innerHTML = list.map(function(r) {
+			return '<div class="recent-item" onclick="quickPlayServer(\'' + r.key + '\')">' +
+				'<span class="recent-dot"></span>' +
+				'<div class="recent-info"><span class="recent-name">' + r.title + '</span><span class="recent-time">' + timeAgo(r.time) + '</span></div>' +
+				'</div>';
+		}).join('');
+	}
+	function quickPlayServer(key) {
+		if (!SERVERS[key]) return;
+		selectServer(key);
+		onPlay();
+	}
+
+	// ---- player tier stats (fetched from midaspvp.com via the Java bridge) ----
+	var KITS = [
+		['vanilla', 'Vanilla'], ['uhc', 'UHC'], ['pot', 'Pot'], ['nethop', 'NethOP'], ['smp', 'SMP'], ['sword', 'Sword'],
+		['axe', 'Axe'], ['mace', 'Mace'], ['cart', 'Cart'], ['diasmp', 'DiaSMP'], ['spearmace', 'SpearMace'], ['bedpvp', 'BedPvP'],
+		['legacyvanilla', 'Legacy Vanilla'], ['legacypot', 'Legacy Pot'], ['legacybridge', 'Legacy Bridge'], ['legacysmp', 'Legacy SMP']
+	];
+	var TIER_POINTS = { HT1: 60, HT2: 45, HT3: 30, HT4: 15, LT1: 10, LT2: 7, LT3: 4, LT4: 2 };
+	var RANK_TITLES = ['Combat Grandmaster', 'Combat Master', 'Combat Ace', 'Combat Specialist', 'Combat Cadet', 'Unranked'];
+	function rankTitle(points) {
+		var idx = points > 380 ? 0 : points > 260 ? 1 : points > 150 ? 2 : points > 60 ? 3 : points > 0 ? 4 : 5;
+		return RANK_TITLES[idx];
+	}
+	var statsFetchTimer = null;
+	function queuePlayerStatsFetch(name) {
+		clearTimeout(statsFetchTimer);
+		statsFetchTimer = setTimeout(function() {
+			if (window.midas) window.midas.fetchPlayerStats(name);
+		}, 300);
+	}
+	function onPlayerStats(json) {
+		var data; try { data = JSON.parse(json); } catch (e) { data = null; }
+		var grid = document.getElementById('kitGrid');
+		if (!data || !data.found) {
+			grid.innerHTML = '<div class="stats-empty">Not ranked yet — get tested on MidasPVP to show up here!</div>';
+			document.getElementById('statsRank').textContent = '';
+			return;
+		}
+		var points = 0;
+		grid.innerHTML = KITS.map(function(k) {
+			var tier = data.tiers ? data.tiers[k[0]] : null;
+			points += TIER_POINTS[tier] || 0;
+			return '<div class="kit-chip' + (tier ? '' : ' empty') + '"><span class="kit-name">' + k[1] + '</span><span class="kit-tier">' + (tier || '—') + '</span></div>';
+		}).join('');
+		document.getElementById('statsRank').textContent = rankTitle(points);
 	}
 
 	function showPage(id) {
@@ -531,7 +675,7 @@
 		var btn = document.getElementById('playBtn');
 		btn.disabled = true;
 		document.getElementById('logContent').textContent = '';
-		document.getElementById('downloadProgress').classList.add('visible');
+		document.getElementById('progressStage').textContent = 'Preparing...';
 		var username = document.getElementById('usernameInput2').value || document.getElementById('usernameInput').value || 'Player';
 		var version = currentVersion();
 		if (!window.midas) { appendLog('[error] Java bridge not available'); return; }
@@ -552,16 +696,23 @@
 		}
 	}
 	function onLaunched() {
-		document.getElementById('downloadProgress').classList.remove('visible');
+		document.getElementById('progressStage').textContent = 'Ready to play';
+		document.getElementById('progressCount').textContent = '';
+		document.getElementById('progressFill').style.width = '0%';
+		pushRecentServer(activeServer);
 	}
 	function onError(message) {
 		document.getElementById('playBtn').disabled = false;
-		document.getElementById('downloadProgress').classList.remove('visible');
+		document.getElementById('progressStage').textContent = 'Ready to play';
+		document.getElementById('progressCount').textContent = '';
+		document.getElementById('progressFill').style.width = '0%';
 		appendLog('[error] ' + message);
 	}
 	function onExit(code) {
 		document.getElementById('playBtn').disabled = false;
-		document.getElementById('downloadProgress').classList.remove('visible');
+		document.getElementById('progressStage').textContent = 'Ready to play';
+		document.getElementById('progressCount').textContent = '';
+		document.getElementById('progressFill').style.width = '0%';
 	}
 	function onLog(line) { appendLog(line); }
 	function appendLog(line) {
@@ -634,6 +785,7 @@
 	setUsername('Player');
 	selectServer('midaspvp');
 	onVersionChange();
+	renderRecentServers();
 </script>
 </body>
 </html>
