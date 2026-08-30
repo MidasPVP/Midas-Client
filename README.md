@@ -1,14 +1,17 @@
 # Midas Client
 
 The official launcher for [MidasPVP](https://midaspvp.com). Downloads and launches Minecraft
-1.21.11 on Fabric Loader, with these mods pre-installed:
+on Fabric Loader — pick a version from the dropdown on the home screen (currently **1.21.11**,
+**26.1.2**, or **26.2**; each gets its own separate instance folder so worlds/configs don't mix).
+These mods come pre-installed:
 
-- **[Fabric API](https://modrinth.com/mod/fabric-api)** — required by the other two
+- **[Fabric API](https://modrinth.com/mod/fabric-api)** — required by the other two, all versions
 - **Tier Tagger** — shows MidasPVP tier ranks above players in-game (built from this org's
-  [tiertagger](https://github.com/MidasPVP) repo)
+  [tiertagger](https://github.com/MidasPVP) repo). **1.21.11 only** for now — it hasn't been
+  ported to 26.1.2/26.2 yet
 - **[In-Game Account Switcher](https://modrinth.com/mod/in-game-account-switcher)** by VidTu —
   sign in with your real Microsoft account *from inside the game* (press Esc), so this launcher
-  itself never needs to touch your Microsoft login
+  itself never needs to touch your Microsoft login. All versions.
 
 ## Using it
 
@@ -35,8 +38,11 @@ Output: `build/libs/MidasLauncher.jar`. Run it with:
 java -jar build/libs/MidasLauncher.jar
 ```
 
-The `mods-bundle/` folder next to the jar must ship alongside it — it holds the mod jars that
-get copied into the game instance on first launch.
+The `mods-bundle/` folder next to the jar must ship alongside it — it holds one subfolder per
+supported Minecraft version (`mods-bundle/1.21.11/`, `mods-bundle/26.1.2/`, `mods-bundle/26.2/`),
+each with the mod jars that get copied into that version's instance on first launch. Adding a new
+version means adding a matching `mods-bundle/{version}/` folder and listing it in
+`GameSession.SUPPORTED_VERSIONS`.
 
 ## How it works
 

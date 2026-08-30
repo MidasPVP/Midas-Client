@@ -147,6 +147,7 @@
 	.title { font-size: 58px; font-weight: 800; letter-spacing: 1px; margin: 0 0 14px 0; text-transform: uppercase; text-shadow: 0 4px 24px rgba(0,0,0,0.5); }
 	.desc { max-width: 620px; color: #d6d6de; font-size: 14px; line-height: 1.7; margin-bottom: 30px; text-shadow: 0 2px 8px rgba(0,0,0,0.5); }
 	.actions { display: flex; gap: 12px; align-items: center; }
+	.version-select { width: auto; margin-bottom: 0; padding: 15px 16px; cursor: pointer; }
 	.btn { border: none; border-radius: 12px; padding: 15px 30px; font-size: 14px; font-weight: 700; letter-spacing: .3px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: transform .1s, box-shadow .15s; }
 	.btn:active { transform: scale(0.97); }
 	.btn-primary { color: white; background: linear-gradient(180deg, #a78bfa 0%, var(--accent) 55%, var(--accent-2) 100%); box-shadow: 0 8px 24px rgba(139,92,246,0.4), inset 0 1px 0 rgba(255,255,255,0.4); }
@@ -254,15 +255,20 @@
 
 			<!-- ===== HOME PAGE ===== -->
 			<div class="page visible" id="homePage">
-				<div class="eyebrow">MIDASPVP &middot; FABRIC 1.21.11</div>
+				<div class="eyebrow">MIDASPVP &middot; FABRIC</div>
 				<h1 class="title">Midas&nbsp;Client</h1>
-				<p class="desc">
+				<p class="desc" id="homeDesc">
 					The official launcher for MidasPVP. Launches Fabric with Tier&nbsp;Tagger and the
 					In-Game Account Switcher pre-installed &mdash; sign in with your real Microsoft
 					account from inside the game once it's running.
 				</p>
 				<div class="actions">
 					<button class="btn btn-primary" id="playBtn" onclick="onPlay()">&#9654;&nbsp; PLAY</button>
+					<select class="glossy-input version-select" id="versionSelect" onchange="onVersionChange()">
+						<option value="1.21.11">1.21.11</option>
+						<option value="26.1.2">26.1.2</option>
+						<option value="26.2">26.2</option>
+					</select>
 					<button class="btn btn-secondary" onclick="showSettings('java')">&#9881;&nbsp; SETTINGS</button>
 				</div>
 				<div class="progress-wrap" id="progressWrap">
@@ -326,19 +332,17 @@
 
 					<div id="panel-mods" style="display:none">
 						<h2 class="settings-title">Installed Mods</h2>
-						<div class="card" style="max-width:520px">
-							<div class="mod-row"><span class="mod-dot"></span><span class="mod-name">Fabric API</span><span class="mod-ver">0.141.6+1.21.11</span></div>
-							<div class="mod-row"><span class="mod-dot"></span><span class="mod-name">Tier Tagger</span><span class="mod-ver">1.0.0</span></div>
-							<div class="mod-row"><span class="mod-dot"></span><span class="mod-name">In-Game Account Switcher</span><span class="mod-ver">9.0.7</span></div>
-						</div>
+						<div class="card-sub" style="margin-bottom:12px">For instance: <b id="modsVersionLabel">1.21.11</b></div>
+						<div class="card" style="max-width:520px" id="modsList"></div>
 					</div>
 
 					<div id="panel-about" style="display:none">
 						<h2 class="settings-title">About</h2>
 						<div class="card" style="max-width:460px">
 							<div class="row"><span>Midas Client</span><span>1.0.0</span></div>
-							<div class="row"><span>Minecraft</span><span>1.21.11</span></div>
+							<div class="row"><span>Minecraft</span><span id="aboutVersion">1.21.11</span></div>
 							<div class="row"><span>Fabric Loader</span><span>0.19.3</span></div>
+							<div class="row"><span>Supported versions</span><span>1.21.11, 26.1.2, 26.2</span></div>
 						</div>
 					</div>
 
@@ -370,6 +374,38 @@
 
 	function updateRamLabel() { document.getElementById('ramValue').textContent = document.getElementById('ramSlider').value; }
 
+	var MODS_BY_VERSION = {
+		'1.21.11': [
+			['Fabric API', '0.141.6+1.21.11'],
+			['Tier Tagger', '1.0.0'],
+			['In-Game Account Switcher', '9.0.7']
+		],
+		'26.1.2': [
+			['Fabric API', '0.155.2+26.1.2'],
+			['In-Game Account Switcher', '9.0.7']
+		],
+		'26.2': [
+			['Fabric API', '0.158.0+26.2'],
+			['In-Game Account Switcher', '9.0.7']
+		]
+	};
+	function currentVersion() { return document.getElementById('versionSelect').value; }
+	function onVersionChange() {
+		var v = currentVersion();
+		var hasTier = MODS_BY_VERSION[v].some(function(m) { return m[0] === 'Tier Tagger'; });
+		document.getElementById('homeDesc').textContent = hasTier
+			? "The official launcher for MidasPVP. Launches Fabric " + v + " with Tier Tagger and the In-Game Account Switcher pre-installed — sign in with your real Microsoft account from inside the game once it's running."
+			: "The official launcher for MidasPVP. Launches Fabric " + v + " with the In-Game Account Switcher pre-installed (Tier Tagger isn't built for this version yet) — sign in with your real Microsoft account from inside the game once it's running.";
+		renderModsList(v);
+		document.getElementById('aboutVersion').textContent = v;
+	}
+	function renderModsList(v) {
+		document.getElementById('modsVersionLabel').textContent = v;
+		document.getElementById('modsList').innerHTML = MODS_BY_VERSION[v].map(function(m) {
+			return '<div class="mod-row"><span class="mod-dot"></span><span class="mod-name">' + m[0] + '</span><span class="mod-ver">' + m[1] + '</span></div>';
+		}).join('');
+	}
+
 	function showHome() {
 		document.getElementById('homePage').classList.add('visible');
 		document.getElementById('settingsPage').classList.remove('visible');
@@ -398,7 +434,7 @@
 		btn.textContent = 'STARTING...';
 		document.getElementById('progressWrap').classList.add('visible');
 		var username = document.getElementById('usernameInput2').value || document.getElementById('usernameInput').value || 'Player';
-		if (window.midas) window.midas.play(username);
+		if (window.midas) window.midas.play(username, currentVersion());
 		else appendLog('[error] Java bridge not available');
 	}
 
@@ -433,6 +469,7 @@
 	}
 
 	setUsername('Player');
+	onVersionChange();
 </script>
 </body>
 </html>

@@ -7,16 +7,16 @@ import java.nio.file.StandardCopyOption;
 import java.util.stream.Stream;
 
 /**
- * Copies the mod jars shipped in the "mods-bundle" folder next to the launcher into the instance's
- * mods folder. (Not embedded inside the launcher jar itself: fat-jar tooling unpacks any nested
- * ".jar" resource it finds during merging, which silently destroys embedded mod jars.)
+ * Copies the mod jars shipped in "mods-bundle/{version}/" next to the launcher into the
+ * instance's mods folder. (Not embedded inside the launcher jar itself: fat-jar tooling unpacks
+ * any nested ".jar" resource it finds during merging, which silently destroys embedded mod jars.)
  */
 public final class ModBundler {
 
-	public static void installInto(Path modsDir) throws IOException {
-		Path bundleDir = Path.of("").toAbsolutePath().resolve("mods-bundle");
+	public static void installInto(Path modsDir, String minecraftVersion) throws IOException {
+		Path bundleDir = Path.of("").toAbsolutePath().resolve("mods-bundle").resolve(minecraftVersion);
 		if (!Files.isDirectory(bundleDir)) {
-			throw new IOException("mods-bundle folder not found next to the launcher: " + bundleDir);
+			throw new IOException("No mods-bundle for Minecraft " + minecraftVersion + " next to the launcher: " + bundleDir);
 		}
 		Files.createDirectories(modsDir);
 		try (Stream<Path> files = Files.list(bundleDir)) {

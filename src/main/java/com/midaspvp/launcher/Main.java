@@ -43,9 +43,9 @@ public final class Main extends Application {
 			this.engine = engine;
 		}
 
-		/** Called from JS: window.midas.play(username) */
-		public void play(String username) {
-			new GameSession(this).start(username);
+		/** Called from JS: window.midas.play(username, version) */
+		public void play(String username, String version) {
+			new GameSession(this).start(username, version);
 		}
 
 		void call(String function, Object... args) {
