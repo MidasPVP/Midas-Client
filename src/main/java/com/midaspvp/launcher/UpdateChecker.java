@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 /** Checks GitHub Releases for a newer version than this build. */
 public final class UpdateChecker {
 	/** Must match the --app-version passed to jpackage. */
-	public static final String APP_VERSION = "1.0.0";
+	public static final String APP_VERSION = "1.0.1";
 
 	private static final String LATEST_RELEASE_URL = "https://api.github.com/repos/MidasPVP/Midas-Client/releases/latest";
 	private static final Pattern TAG_PATTERN = Pattern.compile("\"tag_name\"\\s*:\\s*\"v?([^\"]+)\"");

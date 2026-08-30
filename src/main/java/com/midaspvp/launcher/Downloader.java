@@ -24,11 +24,30 @@ public final class Downloader {
 			.followRedirects(HttpClient.Redirect.NORMAL)
 			.build();
 
-	/** Downloads one file if missing/mismatched. sha1 may be null to skip verification. */
+	private static final int MAX_ATTEMPTS = 4;
+
+	/** Downloads one file if missing/mismatched. sha1 may be null to skip verification.
+	 *  Retries transient failures (dropped connections, TLS handshake resets, etc.) with backoff. */
 	public static void fetch(String url, Path dest, String sha1) throws IOException, InterruptedException {
 		if (Files.isRegularFile(dest) && (sha1 == null || sha1Matches(dest, sha1))) {
 			return;
 		}
+		IOException lastError = null;
+		for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+			try {
+				fetchOnce(url, dest, sha1);
+				return;
+			} catch (IOException e) {
+				lastError = e;
+				if (attempt < MAX_ATTEMPTS) {
+					Thread.sleep(300L * attempt);
+				}
+			}
+		}
+		throw new IOException("Failed after " + MAX_ATTEMPTS + " attempts: " + url, lastError);
+	}
+
+	private static void fetchOnce(String url, Path dest, String sha1) throws IOException, InterruptedException {
 		Files.createDirectories(dest.getParent());
 		Path tmp = dest.resolveSibling(dest.getFileName() + ".part");
 		HttpRequest request = HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofMinutes(5)).GET().build();

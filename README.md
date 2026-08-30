@@ -6,9 +6,9 @@ on Fabric Loader — pick a version from the dropdown on the home screen (curren
 These mods come pre-installed:
 
 - **[Fabric API](https://modrinth.com/mod/fabric-api)** — required by the other two, all versions
-- **Tier Tagger** — shows MidasPVP tier ranks above players in-game (built from this org's
-  [tiertagger](https://github.com/MidasPVP) repo). **1.21.11 only** for now — it hasn't been
-  ported to 26.1.2/26.2 yet
+- **Tier Tagger** — shows MidasPVP tier ranks above players in-game, and press **P** in-game to
+  see your own tier in every kit (built from this org's [tiertagger](https://github.com/MidasPVP)
+  repo). **1.21.11 only** for now — it hasn't been ported to 26.1.2/26.2 yet
 - **[In-Game Account Switcher](https://modrinth.com/mod/in-game-account-switcher)** by VidTu —
   sign in with your real Microsoft account *from inside the game* (press Esc), so this launcher
   itself never needs to touch your Microsoft login. All versions.

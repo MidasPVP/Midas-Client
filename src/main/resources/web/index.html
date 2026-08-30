@@ -352,7 +352,7 @@
 					<div id="panel-about" style="display:none">
 						<h2 class="settings-title">About</h2>
 						<div class="card" style="max-width:460px">
-							<div class="row"><span>Midas Client</span><span>1.0.0</span></div>
+							<div class="row"><span>Midas Client</span><span>1.0.1</span></div>
 							<div class="row"><span>Minecraft</span><span id="aboutVersion">1.21.11</span></div>
 							<div class="row"><span>Fabric Loader</span><span>0.19.3</span></div>
 							<div class="row"><span>Supported versions</span><span>1.21.11, 26.1.2, 26.2</span></div>
@@ -390,7 +390,7 @@
 	var MODS_BY_VERSION = {
 		'1.21.11': [
 			['Fabric API', '0.141.6+1.21.11'],
-			['Tier Tagger', '1.0.0'],
+			['Tier Tagger', '1.1.0'],
 			['In-Game Account Switcher', '9.0.7']
 		],
 		'26.1.2': [
@@ -445,6 +445,7 @@
 		var btn = document.getElementById('playBtn');
 		btn.disabled = true;
 		btn.textContent = 'STARTING...';
+		document.getElementById('logBox').textContent = '';
 		document.getElementById('progressWrap').classList.add('visible');
 		var username = document.getElementById('usernameInput2').value || document.getElementById('usernameInput').value || 'Player';
 		if (window.midas) window.midas.play(username, currentVersion());
