@@ -1,6 +1,11 @@
 .gradle/
 build/
 run/
+dist-msi/
+dist-appimage/
+jpackage-input/
 *.class
 .idea/
 *.iml
+
+msi_install.log

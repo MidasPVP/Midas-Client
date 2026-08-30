@@ -125,6 +125,15 @@
 	.main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 
 	.topbar { display: flex; align-items: center; gap: 12px; padding: 20px 28px; }
+	.update-pill {
+		display: flex; align-items: center; gap: 8px; cursor: pointer;
+		background: linear-gradient(180deg, #a78bfa 0%, var(--accent) 55%, var(--accent-2) 100%);
+		border-radius: 999px; padding: 8px 16px; font-size: 12px; font-weight: 600; color: white;
+		box-shadow: 0 6px 18px rgba(139,92,246,0.4), inset 0 1px 0 rgba(255,255,255,0.4);
+		transition: transform .1s;
+	}
+	.update-pill:hover { transform: scale(1.03); }
+	.update-pill svg { width: 14px; height: 14px; fill: none; stroke: white; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 	.grow { flex: 1; }
 	.account {
 		display: flex; align-items: center; gap: 10px; cursor: pointer;
@@ -243,6 +252,10 @@
 
 		<div class="main">
 			<div class="topbar">
+				<div class="update-pill" id="updatePill" style="display:none" onclick="openReleasePage()">
+					<svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+					<span>Update available &mdash; <b id="updateVersion"></b></span>
+				</div>
 				<div class="grow"></div>
 				<div class="account" onclick="showSettings('profile')">
 					<div class="avatar" id="avatarImg"></div>
@@ -439,6 +452,15 @@
 	}
 
 	// ---- called from Java ----
+	var latestReleaseUrl = null;
+	function onUpdateAvailable(version, url) {
+		latestReleaseUrl = url;
+		document.getElementById('updateVersion').textContent = 'v' + version;
+		document.getElementById('updatePill').style.display = 'flex';
+	}
+	function openReleasePage() {
+		if (latestReleaseUrl && window.midas) window.midas.openUrl(latestReleaseUrl);
+	}
 	function onLog(line) { appendLog(line); }
 	function onProgress(stage, done, total) {
 		document.getElementById('progressStage').textContent = stage;
