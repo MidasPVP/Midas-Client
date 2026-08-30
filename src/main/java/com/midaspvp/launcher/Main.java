@@ -9,8 +9,12 @@ import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import netscape.javascript.JSObject;
 
+import com.google.gson.Gson;
+
 import java.awt.Desktop;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public final class Main extends Application {
 
@@ -43,8 +47,22 @@ public final class Main extends Application {
 	private void checkForUpdateInBackground(Bridge bridge) {
 		Thread thread = new Thread(() -> {
 			UpdateChecker.UpdateInfo update = UpdateChecker.checkForUpdate();
-			if (update != null) {
-				bridge.call("onUpdateAvailable", update.version(), update.url());
+			if (update == null) return;
+
+			if (update.msiUrl() == null) {
+				// No installer attached to the release — just point at the page, nothing to auto-download.
+				bridge.call("onUpdateAvailable", update.version(), update.htmlUrl());
+				return;
+			}
+
+			bridge.call("onUpdateDownloading", update.version());
+			try {
+				Path msi = SelfUpdater.downloadInstaller(update);
+				bridge.pendingUpdateInstaller = msi;
+				bridge.call("onUpdateReady", update.version());
+			} catch (Exception e) {
+				// Download failed - still let them get it manually from the release page.
+				bridge.call("onUpdateAvailable", update.version(), update.htmlUrl());
 			}
 		}, "midas-update-check");
 		thread.setDaemon(true);
@@ -54,6 +72,7 @@ public final class Main extends Application {
 	/** Java object exposed to the page as `window.midas`. */
 	public static final class Bridge {
 		private final WebEngine engine;
+		volatile Path pendingUpdateInstaller;
 
 		Bridge(WebEngine engine) {
 			this.engine = engine;
@@ -64,6 +83,11 @@ public final class Main extends Application {
 			new GameSession(this).start(username, version);
 		}
 
+		/** Called from JS: window.midas.playServer(username, version, serverAddress) — auto-connects on launch. */
+		public void playServer(String username, String version, String serverAddress) {
+			new GameSession(this).start(username, version, serverAddress);
+		}
+
 		/** Called from JS: window.midas.openUrl(url) — opens in the system's default browser. */
 		public void openUrl(String url) {
 			try {
@@ -71,6 +95,48 @@ public final class Main extends Application {
 			} catch (Exception e) {
 				call("onLog", "[error] Couldn't open browser: " + e.getMessage());
 			}
+		}
+
+		/** Called from JS: window.midas.applyUpdate() — installs the already-downloaded update and restarts. */
+		public void applyUpdate() {
+			Path msi = pendingUpdateInstaller;
+			if (msi == null) return;
+			try {
+				SelfUpdater.applyAndExit(msi);
+			} catch (Exception e) {
+				call("onLog", "[error] Couldn't launch the updater: " + e.getMessage());
+			}
+		}
+
+		/** Called from JS: window.midas.searchMods(query, version) — results come back via onSearchResults(json). */
+		public void searchMods(String query, String version) {
+			Thread thread = new Thread(() -> {
+				String json;
+				try {
+					json = new Gson().toJson(ModrinthBrowser.search(query, version));
+				} catch (Exception e) {
+					json = "[]";
+				}
+				call("onSearchResults", json);
+			}, "midas-mod-search");
+			thread.setDaemon(true);
+			thread.start();
+		}
+
+		/** Called from JS: window.midas.installMod(slug, version) — installs into that version's mods folder. */
+		public void installMod(String slug, String version) {
+			Thread thread = new Thread(() -> {
+				try {
+					Path modsDir = Path.of("").toAbsolutePath().resolve("instance-" + version).resolve("mods");
+					Files.createDirectories(modsDir);
+					String filename = ModrinthBrowser.install(slug, version, modsDir);
+					call("onModInstalled", slug, filename);
+				} catch (Exception e) {
+					call("onModInstallError", slug, String.valueOf(e.getMessage()));
+				}
+			}, "midas-mod-install");
+			thread.setDaemon(true);
+			thread.start();
 		}
 
 		void call(String function, Object... args) {

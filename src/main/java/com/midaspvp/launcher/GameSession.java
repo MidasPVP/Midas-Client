@@ -23,13 +23,18 @@ final class GameSession {
 	}
 
 	void start(String username, String minecraftVersion) {
+		start(username, minecraftVersion, null);
+	}
+
+	/** serverAddress may be null for a plain launch, or a "host[:port]" to auto-connect on join (Featured Servers). */
+	void start(String username, String minecraftVersion, String serverAddress) {
 		String version = SUPPORTED_VERSIONS.contains(minecraftVersion) ? minecraftVersion : DEFAULT_VERSION;
-		Thread thread = new Thread(() -> run(username, version), "midas-game-session");
+		Thread thread = new Thread(() -> run(username, version, serverAddress), "midas-game-session");
 		thread.setDaemon(true);
 		thread.start();
 	}
 
-	private void run(String username, String version) {
+	private void run(String username, String version, String serverAddress) {
 		try {
 			// Each Minecraft version gets its own instance folder so worlds/configs/mods don't clash.
 			Path gameDir = launcherHome.resolve("instance-" + version);
@@ -49,7 +54,7 @@ final class GameSession {
 			if (!new java.io.File(javaExe).isFile()) {
 				javaExe = System.getProperty("java.home") + java.io.File.separator + "bin" + java.io.File.separator + "java";
 			}
-			Process process = GameLauncher.launch(result, gameDir, cacheDir.resolve("natives").resolve(version), javaExe, username);
+			Process process = GameLauncher.launch(result, gameDir, cacheDir.resolve("natives").resolve(version), javaExe, username, serverAddress);
 			bridge.call("onLaunched");
 			streamOutput(process);
 		} catch (Exception e) {

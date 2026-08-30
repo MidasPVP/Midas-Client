@@ -11,13 +11,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 /** Builds the java command line from an InstallResult + a chosen offline username, and starts the process. */
 public final class GameLauncher {
 
-	public static Process launch(InstallResult install, Path gameDir, Path nativesDir, String javaExecutable, String username) throws IOException {
+	/** serverAddress may be null — when set, the game auto-connects to that server on launch
+	 *  (Mojang's own --quickPlayMultiplayer flag, used for the Featured Servers cards). */
+	public static Process launch(InstallResult install, Path gameDir, Path nativesDir, String javaExecutable, String username, String serverAddress) throws IOException {
 		Files.createDirectories(gameDir);
 		Files.createDirectories(nativesDir);
 
@@ -43,11 +46,17 @@ public final class GameLauncher {
 				.map(p -> p.toAbsolutePath().toString())
 				.collect(Collectors.joining(java.io.File.pathSeparator)));
 
+		Set<String> features = Set.of();
+		if (serverAddress != null && !serverAddress.isBlank()) {
+			placeholders.put("quickPlayMultiplayer", serverAddress);
+			features = Set.of("is_quick_play_multiplayer");
+		}
+
 		List<String> command = new ArrayList<>();
 		command.add(javaExecutable);
-		command.addAll(resolveArgs(install.jvmArgs, placeholders));
+		command.addAll(resolveArgs(install.jvmArgs, placeholders, features));
 		command.add(install.mainClass);
-		command.addAll(resolveArgs(install.gameArgs, placeholders));
+		command.addAll(resolveArgs(install.gameArgs, placeholders, features));
 
 		ProcessBuilder pb = new ProcessBuilder(command);
 		pb.directory(gameDir.toFile());
@@ -56,9 +65,9 @@ public final class GameLauncher {
 	}
 
 	/** Resolves a mixed array of plain-string and {rules,value} entries, substituting ${...} placeholders.
-	 *  No optional features (demo mode, custom resolution, quick-play, etc.) are enabled, so any entry whose
-	 *  rules require a "features" flag is skipped; entries gated only by "os" are evaluated normally. */
-	private static List<String> resolveArgs(JsonArray raw, Map<String, String> placeholders) {
+	 *  Entries whose rules require a "features" flag only apply if that flag is in enabledFeatures;
+	 *  entries gated only by "os" are evaluated normally regardless. */
+	private static List<String> resolveArgs(JsonArray raw, Map<String, String> placeholders, Set<String> enabledFeatures) {
 		List<String> out = new ArrayList<>();
 		for (JsonElement el : raw) {
 			if (el.isJsonPrimitive()) {
@@ -66,7 +75,7 @@ public final class GameLauncher {
 				continue;
 			}
 			JsonObject entry = el.getAsJsonObject();
-			if (!ruleAllows(entry)) continue;
+			if (!ruleAllows(entry, enabledFeatures)) continue;
 			JsonElement value = entry.get("value");
 			if (value.isJsonArray()) {
 				for (JsonElement v : value.getAsJsonArray()) out.add(substitute(v.getAsString(), placeholders));
@@ -77,13 +86,20 @@ public final class GameLauncher {
 		return out;
 	}
 
-	private static boolean ruleAllows(JsonObject entry) {
+	private static boolean ruleAllows(JsonObject entry, Set<String> enabledFeatures) {
 		if (!entry.has("rules")) return true;
 		boolean allowed = false;
 		for (JsonElement el : entry.getAsJsonArray("rules")) {
 			JsonObject rule = el.getAsJsonObject();
 			boolean matches = true;
-			if (rule.has("features")) matches = false; // we enable no optional features
+			if (rule.has("features")) {
+				JsonObject features = rule.getAsJsonObject("features");
+				for (var e : features.entrySet()) {
+					boolean required = e.getValue().getAsBoolean();
+					boolean have = enabledFeatures.contains(e.getKey());
+					if (required != have) matches = false;
+				}
+			}
 			if (rule.has("os")) {
 				JsonObject os = rule.getAsJsonObject("os");
 				if (os.has("name") && !os.get("name").getAsString().equals(OsMatch.OS_NAME)) matches = false;

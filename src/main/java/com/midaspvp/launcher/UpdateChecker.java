@@ -1,45 +1,62 @@
 package com.midaspvp.launcher;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /** Checks GitHub Releases for a newer version than this build. */
 public final class UpdateChecker {
 	/** Must match the --app-version passed to jpackage. */
-	public static final String APP_VERSION = "1.0.2";
+	public static final String APP_VERSION = "1.1.0";
 
 	private static final String LATEST_RELEASE_URL = "https://api.github.com/repos/MidasPVP/Midas-Client/releases/latest";
-	private static final Pattern TAG_PATTERN = Pattern.compile("\"tag_name\"\\s*:\\s*\"v?([^\"]+)\"");
-	private static final Pattern HTML_URL_PATTERN = Pattern.compile("\"html_url\"\\s*:\\s*\"([^\"]+)\"");
+	private static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
 
-	public record UpdateInfo(String version, String url) {
+	/** msiUrl/msiName are null if the release has no .msi asset attached (nothing to auto-download). */
+	public record UpdateInfo(String version, String htmlUrl, String msiUrl, String msiName) {
 	}
 
 	/** Blocking network call — run off the JavaFX thread. Returns null if up to date or the check fails. */
 	public static UpdateInfo checkForUpdate() {
 		try {
-			HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
 			HttpRequest request = HttpRequest.newBuilder(URI.create(LATEST_RELEASE_URL))
 					.header("Accept", "application/vnd.github+json")
 					.timeout(Duration.ofSeconds(10))
 					.GET().build();
-			HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+			HttpResponse<String> response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
 			if (response.statusCode() != 200) return null;
 
-			Matcher tagMatcher = TAG_PATTERN.matcher(response.body());
-			if (!tagMatcher.find()) return null;
-			String latest = tagMatcher.group(1);
-
+			JsonObject release = JsonParser.parseString(response.body()).getAsJsonObject();
+			String tag = release.get("tag_name").getAsString();
+			String latest = tag.startsWith("v") ? tag.substring(1) : tag;
 			if (!isNewer(latest, APP_VERSION)) return null;
 
-			Matcher urlMatcher = HTML_URL_PATTERN.matcher(response.body());
-			String url = urlMatcher.find() ? urlMatcher.group(1) : "https://github.com/MidasPVP/Midas-Client/releases/latest";
-			return new UpdateInfo(latest, url);
+			String htmlUrl = release.has("html_url") ? release.get("html_url").getAsString()
+					: "https://github.com/MidasPVP/Midas-Client/releases/latest";
+
+			String msiUrl = null;
+			String msiName = null;
+			if (release.has("assets")) {
+				JsonArray assets = release.getAsJsonArray("assets");
+				for (JsonElement el : assets) {
+					JsonObject asset = el.getAsJsonObject();
+					String name = asset.get("name").getAsString();
+					if (name.toLowerCase().endsWith(".msi")) {
+						msiUrl = asset.get("browser_download_url").getAsString();
+						msiName = name;
+						break;
+					}
+				}
+			}
+
+			return new UpdateInfo(latest, htmlUrl, msiUrl, msiName);
 		} catch (Exception e) {
 			return null;
 		}
