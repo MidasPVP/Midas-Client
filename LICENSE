@@ -19,12 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-This license covers the launcher's own source code only. The mod jars shipped
-in mods-bundle/ are third-party software under their own licenses:
-
-- Fabric API — Apache License 2.0 (https://github.com/FabricMC/fabric/blob/main/LICENSE)
-- In-Game Account Switcher — GNU LGPL v3.0-or-later (https://github.com/The-Fireplace-Minecraft-Mods/In-Game-Account-Switcher/blob/main/LICENSE)
-- Tier Tagger — MIT (same terms as above), from the MidasPVP/tiertagger repo
