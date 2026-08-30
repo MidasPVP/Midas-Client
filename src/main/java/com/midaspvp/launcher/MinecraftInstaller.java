@@ -133,10 +133,26 @@ public final class MinecraftInstaller {
 		return (base.endsWith("/") ? base : base + "/") + path;
 	}
 
+	private static final int JSON_MAX_ATTEMPTS = 6;
+
+	/** Same transient-failure retries as Downloader.fetch — a dropped connection here used to fail
+	 *  the whole install with no retry at all, since this path (manifest/version/Fabric-profile
+	 *  fetches) is separate from the parallel file downloader. */
 	private static JsonObject getJson(String url) throws IOException, InterruptedException {
-		HttpRequest request = HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(30)).GET().build();
-		HttpResponse<String> response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
-		if (response.statusCode() != 200) throw new IOException("HTTP " + response.statusCode() + " for " + url);
-		return JsonParser.parseString(response.body()).getAsJsonObject();
+		IOException lastError = null;
+		for (int attempt = 1; attempt <= JSON_MAX_ATTEMPTS; attempt++) {
+			try {
+				HttpRequest request = HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(30)).GET().build();
+				HttpResponse<String> response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
+				if (response.statusCode() != 200) throw new IOException("HTTP " + response.statusCode() + " for " + url);
+				return JsonParser.parseString(response.body()).getAsJsonObject();
+			} catch (IOException e) {
+				lastError = e;
+				if (attempt < JSON_MAX_ATTEMPTS) {
+					Thread.sleep(400L * (1L << Math.min(attempt, 4)));
+				}
+			}
+		}
+		throw new IOException("Failed after " + JSON_MAX_ATTEMPTS + " attempts: " + url, lastError);
 	}
 }
