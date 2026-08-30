@@ -450,7 +450,10 @@
 			document.getElementById('progressFill').style.width = '100%';
 		}
 	}
-	function onLaunched() { document.getElementById('playBtn').innerHTML = '&#9654;&nbsp; RUNNING'; }
+	function onLaunched() {
+		document.getElementById('playBtn').innerHTML = '&#9654;&nbsp; RUNNING';
+		resetProgress();
+	}
 	function onError(message) {
 		var btn = document.getElementById('playBtn');
 		btn.disabled = false;
@@ -461,6 +464,13 @@
 		var btn = document.getElementById('playBtn');
 		btn.disabled = false;
 		btn.innerHTML = '&#9654;&nbsp; PLAY';
+		resetProgress();
+	}
+	function resetProgress() {
+		document.getElementById('progressWrap').classList.remove('visible');
+		document.getElementById('progressStage').textContent = 'Preparing...';
+		document.getElementById('progressCount').textContent = '';
+		document.getElementById('progressFill').style.width = '0%';
 	}
 	function appendLog(line) {
 		var box = document.getElementById('logBox');
