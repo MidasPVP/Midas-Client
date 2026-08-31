@@ -355,8 +355,8 @@
 			<!-- ===== HOME / FEATURED SERVERS PAGE ===== -->
 			<div class="page visible" id="homePage">
 				<div class="server-tabs">
-					<button class="server-tab active" id="tab-midaspvp" onclick="selectServer('midaspvp')">MidasPVP</button>
-					<button class="server-tab" id="tab-powersmp" onclick="selectServer('powersmp')">PowerSMP</button>
+					<button class="server-tab active" id="tab-midaspvp" onclick="selectServer('midaspvp')" title="Click again to untick — PLAY won't quick-connect anywhere">MidasPVP</button>
+					<button class="server-tab" id="tab-powersmp" onclick="selectServer('powersmp')" title="Click again to untick — PLAY won't quick-connect anywhere">PowerSMP</button>
 				</div>
 				<div class="middle-section">
 					<div class="left-col">
@@ -468,7 +468,7 @@
 					<div id="panel-about" style="display:none">
 						<h2 class="settings-title">About</h2>
 						<div class="card" style="max-width:460px">
-							<div class="row"><span>Midas Client</span><span id="aboutClientVersion">1.1.3</span></div>
+							<div class="row"><span>Midas Client</span><span id="aboutClientVersion">1.1.4</span></div>
 							<div class="row"><span>Minecraft</span><span id="aboutVersion">1.21.11</span></div>
 							<div class="row"><span>Fabric Loader</span><span>0.19.3</span></div>
 							<div class="row"><span>Supported versions</span><span>1.21.11, 26.1.2, 26.2</span></div>
@@ -570,11 +570,20 @@
 		}).join('');
 	}
 
+	// Clicking a tab that's already active un-ticks it (no quick-connect on PLAY); clicking a different
+	// tab (or a re-tick) selects it normally.
 	function selectServer(key) {
+		setActiveServer(activeServer === key ? null : key);
+	}
+	function setActiveServer(key) {
 		activeServer = key;
 		['midaspvp', 'powersmp'].forEach(function(k) {
 			document.getElementById('tab-' + k).classList.toggle('active', k === key);
 		});
+		if (!key) {
+			document.getElementById('heroServer').textContent = 'No server selected — click a tab to quick-connect';
+			return;
+		}
 		var s = SERVERS[key];
 		document.getElementById('heroServer').textContent = s.address ? (s.title + ' · ' + s.address) : (s.title + ' · Coming soon');
 	}
@@ -611,7 +620,7 @@
 	}
 	function quickPlayServer(key) {
 		if (!SERVERS[key]) return;
-		selectServer(key);
+		setActiveServer(key);
 		onPlay();
 	}
 
@@ -783,7 +792,7 @@
 	}
 
 	setUsername('Player');
-	selectServer('midaspvp');
+	setActiveServer('midaspvp');
 	onVersionChange();
 	renderRecentServers();
 </script>
