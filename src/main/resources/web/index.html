@@ -468,7 +468,7 @@
 					<div id="panel-about" style="display:none">
 						<h2 class="settings-title">About</h2>
 						<div class="card" style="max-width:460px">
-							<div class="row"><span>Midas Client</span><span id="aboutClientVersion">1.1.2</span></div>
+							<div class="row"><span>Midas Client</span><span id="aboutClientVersion">1.1.3</span></div>
 							<div class="row"><span>Minecraft</span><span id="aboutVersion">1.21.11</span></div>
 							<div class="row"><span>Fabric Loader</span><span>0.19.3</span></div>
 							<div class="row"><span>Supported versions</span><span>1.21.11, 26.1.2, 26.2</span></div>
@@ -493,8 +493,8 @@
 
 <script>
 	var SERVERS = {
-		midaspvp: { title: 'MidasPVP', desc: 'The main MidasPVP server — tiered PvP kits, ranked leaderboards, and Tier Tagger built right in.', address: 'midaspvp.com', mods: 'Tier Tagger' },
-		powersmp: { title: 'PowerSMP', desc: 'PowerSMP — survival multiplayer with the Power plugin.', address: 'play.powersmp.net', mods: '—' }
+		midaspvp: { title: 'MidasPVP', desc: 'The main MidasPVP server — tiered PvP kits, ranked leaderboards, and Tier Tagger built right in.', address: '', mods: 'Tier Tagger' },
+		powersmp: { title: 'PowerSMP', desc: 'PowerSMP — survival multiplayer with the Power plugin.', address: 'powerssmp.playit.plus', mods: '—' }
 	};
 	var MODS_BY_VERSION = {
 		'1.21.11': [
@@ -576,7 +576,7 @@
 			document.getElementById('tab-' + k).classList.toggle('active', k === key);
 		});
 		var s = SERVERS[key];
-		document.getElementById('heroServer').textContent = s.title + ' · ' + s.address;
+		document.getElementById('heroServer').textContent = s.address ? (s.title + ' · ' + s.address) : (s.title + ' · Coming soon');
 	}
 
 	// ---- recently played servers (persisted per-viewer in the WebView's localStorage) ----
@@ -585,7 +585,7 @@
 	}
 	function pushRecentServer(key) {
 		var s = SERVERS[key];
-		if (!s) return;
+		if (!s || !s.address) return;
 		var list = loadRecentServers().filter(function(r) { return r.key !== key; });
 		list.unshift({ key: key, title: s.title, address: s.address, time: Date.now() });
 		try { localStorage.setItem('midas.recentServers', JSON.stringify(list.slice(0, 5))); } catch (e) {}
