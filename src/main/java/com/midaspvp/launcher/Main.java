@@ -83,9 +83,11 @@ public final class Main extends Application {
 			new GameSession(this).start(username, version);
 		}
 
-		/** Called from JS: window.midas.playServer(username, version, serverAddress) — auto-connects on launch. */
-		public void playServer(String username, String version, String serverAddress) {
-			new GameSession(this).start(username, version, serverAddress);
+		/** Called from JS: window.midas.playServer(username, version, serverName, serverAddress) — adds the
+		 *  server to the player's Multiplayer list (if not already there) before launching. Not an
+		 *  auto-connect: see the note on GameLauncher.launch for why. */
+		public void playServer(String username, String version, String serverName, String serverAddress) {
+			new GameSession(this).start(username, version, serverName, serverAddress);
 		}
 
 		/** Called from JS: window.midas.openUrl(url) — opens in the system's default browser. */

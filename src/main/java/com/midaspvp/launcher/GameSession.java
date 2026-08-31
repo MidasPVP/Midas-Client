@@ -23,18 +23,20 @@ final class GameSession {
 	}
 
 	void start(String username, String minecraftVersion) {
-		start(username, minecraftVersion, null);
+		start(username, minecraftVersion, null, null);
 	}
 
-	/** serverAddress may be null for a plain launch, or a "host[:port]" to auto-connect on join (Featured Servers). */
-	void start(String username, String minecraftVersion, String serverAddress) {
+	/** serverName/serverAddress may both be null for a plain launch. When set, that server is
+	 *  added to the player's Multiplayer server list (if not already there) before launch — not
+	 *  auto-connected; see the note on GameLauncher.launch for why. */
+	void start(String username, String minecraftVersion, String serverName, String serverAddress) {
 		String version = SUPPORTED_VERSIONS.contains(minecraftVersion) ? minecraftVersion : DEFAULT_VERSION;
-		Thread thread = new Thread(() -> run(username, version, serverAddress), "midas-game-session");
+		Thread thread = new Thread(() -> run(username, version, serverName, serverAddress), "midas-game-session");
 		thread.setDaemon(true);
 		thread.start();
 	}
 
-	private void run(String username, String version, String serverAddress) {
+	private void run(String username, String version, String serverName, String serverAddress) {
 		try {
 			// Each Minecraft version gets its own instance folder so worlds/configs/mods don't clash.
 			Path gameDir = launcherHome.resolve("instance-" + version);
@@ -49,12 +51,22 @@ final class GameSession {
 			bridge.call("onProgress", "Installing mods...", 0, 0);
 			ModBundler.installInto(gameDir.resolve("mods"), version);
 
+			if (serverAddress != null && !serverAddress.isBlank()) {
+				try {
+					ServerListNbt.upsertServer(gameDir.resolve("servers.dat"), serverName != null ? serverName : serverAddress, serverAddress);
+					bridge.call("onLog", "Added " + serverAddress + " to your Multiplayer server list.");
+				} catch (Exception e) {
+					// Not fatal — the player can still add the server manually.
+					bridge.call("onLog", "[warn] Couldn't add " + serverAddress + " to your server list: " + e.getMessage());
+				}
+			}
+
 			bridge.call("onProgress", "Launching...", 0, 0);
 			String javaExe = System.getProperty("java.home") + java.io.File.separator + "bin" + java.io.File.separator + "javaw.exe";
 			if (!new java.io.File(javaExe).isFile()) {
 				javaExe = System.getProperty("java.home") + java.io.File.separator + "bin" + java.io.File.separator + "java";
 			}
-			Process process = GameLauncher.launch(result, gameDir, cacheDir.resolve("natives").resolve(version), javaExe, username, serverAddress);
+			Process process = GameLauncher.launch(result, gameDir, cacheDir.resolve("natives").resolve(version), javaExe, username);
 			bridge.call("onLaunched");
 			streamOutput(process);
 		} catch (Exception e) {

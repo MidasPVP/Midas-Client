@@ -18,9 +18,14 @@ import java.util.stream.Collectors;
 /** Builds the java command line from an InstallResult + a chosen offline username, and starts the process. */
 public final class GameLauncher {
 
-	/** serverAddress may be null — when set, the game auto-connects to that server on launch
-	 *  (Mojang's own --quickPlayMultiplayer flag, used for the Featured Servers cards). */
-	public static Process launch(InstallResult install, Path gameDir, Path nativesDir, String javaExecutable, String username, String serverAddress) throws IOException {
+	/** Note: deliberately does NOT use Mojang's --quickPlayMultiplayer to auto-connect on launch.
+	 *  It would race the in-game Microsoft login (In-Game Account Switcher) — the game connects
+	 *  the instant the world loads, using whatever session is active at that moment, which is
+	 *  always the local offline profile since the real login only happens after the player opens
+	 *  the Account Switcher manually. That's fine for a cracked/offline-mode server but silently
+	 *  breaks premium ones. Featured servers are instead added to the player's own Multiplayer
+	 *  server list (see ServerListNbt) so they can log in first, then connect when ready. */
+	public static Process launch(InstallResult install, Path gameDir, Path nativesDir, String javaExecutable, String username) throws IOException {
 		Files.createDirectories(gameDir);
 		Files.createDirectories(nativesDir);
 
@@ -47,10 +52,6 @@ public final class GameLauncher {
 				.collect(Collectors.joining(java.io.File.pathSeparator)));
 
 		Set<String> features = Set.of();
-		if (serverAddress != null && !serverAddress.isBlank()) {
-			placeholders.put("quickPlayMultiplayer", serverAddress);
-			features = Set.of("is_quick_play_multiplayer");
-		}
 
 		List<String> command = new ArrayList<>();
 		command.add(javaExecutable);
