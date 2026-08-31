@@ -124,7 +124,20 @@
 	.page.visible { display: flex; }
 
 	/* home / server pages */
-	.server-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+	.server-tabs { display: flex; gap: 8px; margin-bottom: 18px; align-items: center; }
+	.direct-connect { display: flex; gap: 6px; margin-left: auto; }
+	.direct-connect input {
+		background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 9999px;
+		padding: 8px 16px; font-size: 12px; color: #fff; width: 220px; font-family: inherit; outline: none;
+		transition: border-color .15s, background .15s;
+	}
+	.direct-connect input::placeholder { color: rgba(255,255,255,0.35); }
+	.direct-connect input:focus { border-color: var(--gold); background: rgba(255,215,0,0.06); }
+	.direct-connect button {
+		background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10); color: #fff;
+		border-radius: 9999px; padding: 8px 16px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit;
+	}
+	.direct-connect button:hover { background: rgba(255,255,255,0.12); }
 	.server-tab {
 		background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.55);
 		border-radius: 9999px; padding: 8px 18px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit;
@@ -357,6 +370,10 @@
 				<div class="server-tabs">
 					<button class="server-tab active" id="tab-midaspvp" onclick="selectServer('midaspvp')" title="Click again to untick — PLAY won't add a server to your Multiplayer list">MidasPVP</button>
 					<button class="server-tab" id="tab-powersmp" onclick="selectServer('powersmp')" title="Click again to untick — PLAY won't add a server to your Multiplayer list">PowerSMP</button>
+					<div class="direct-connect">
+						<input type="text" id="directConnectInput" placeholder="Or play any other server..." onkeydown="if(event.key==='Enter') directConnect()">
+						<button onclick="directConnect()" title="Adds this server to your Multiplayer list and launches">Connect</button>
+					</div>
 				</div>
 				<div class="middle-section">
 					<div class="left-col">
@@ -468,7 +485,7 @@
 					<div id="panel-about" style="display:none">
 						<h2 class="settings-title">About</h2>
 						<div class="card" style="max-width:460px">
-							<div class="row"><span>Midas Client</span><span id="aboutClientVersion">1.2.0</span></div>
+							<div class="row"><span>Midas Client</span><span id="aboutClientVersion">1.2.1</span></div>
 							<div class="row"><span>Minecraft</span><span id="aboutVersion">1.21.11</span></div>
 							<div class="row"><span>Fabric Loader</span><span>0.19.3</span></div>
 							<div class="row"><span>Supported versions</span><span>1.21.11, 26.1.2, 26.2</span></div>
@@ -681,6 +698,19 @@
 	}
 
 	function onPlay() {
+		var server = SERVERS[activeServer];
+		if (server && server.address) launch(server.title, server.address);
+		else launch(null, null);
+	}
+	function directConnect() {
+		var input = document.getElementById('directConnectInput');
+		var address = input.value.trim();
+		if (!address) return;
+		setActiveServer(null); // typing a custom address doesn't touch the featured tabs' ticked state
+		launch(address, address);
+		input.value = '';
+	}
+	function launch(serverName, serverAddress) {
 		var btn = document.getElementById('playBtn');
 		btn.disabled = true;
 		document.getElementById('logContent').textContent = '';
@@ -688,8 +718,7 @@
 		var username = document.getElementById('usernameInput2').value || document.getElementById('usernameInput').value || 'Player';
 		var version = currentVersion();
 		if (!window.midas) { appendLog('[error] Java bridge not available'); return; }
-		var server = SERVERS[activeServer];
-		if (server && server.address) window.midas.playServer(username, version, server.title, server.address);
+		if (serverAddress) window.midas.playServer(username, version, serverName, serverAddress);
 		else window.midas.play(username, version);
 	}
 
