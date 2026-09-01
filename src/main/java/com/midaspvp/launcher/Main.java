@@ -155,7 +155,7 @@ public final class Main extends Application {
 		public void installMod(String slug, String version) {
 			Thread thread = new Thread(() -> {
 				try {
-					Path modsDir = Path.of("").toAbsolutePath().resolve("instance-" + version).resolve("mods");
+					Path modsDir = UserData.DIR.resolve("instance-" + version).resolve("mods");
 					Files.createDirectories(modsDir);
 					String filename = ModrinthBrowser.install(slug, version, modsDir);
 					call("onModInstalled", slug, filename);
@@ -173,7 +173,7 @@ public final class Main extends Application {
 		public void listInstalledMods(String version) {
 			Thread thread = new Thread(() -> {
 				java.util.List<String> names = new java.util.ArrayList<>();
-				Path modsDir = Path.of("").toAbsolutePath().resolve("instance-" + version).resolve("mods");
+				Path modsDir = UserData.DIR.resolve("instance-" + version).resolve("mods");
 				try (var files = Files.list(modsDir)) {
 					files.filter(p -> p.getFileName().toString().endsWith(".jar"))
 							.map(p -> p.getFileName().toString())
@@ -191,7 +191,7 @@ public final class Main extends Application {
 		/** Called from JS: window.midas.openGameFolder(version) — opens that instance's folder in Explorer. */
 		public void openGameFolder(String version) {
 			try {
-				Path gameDir = Path.of("").toAbsolutePath().resolve("instance-" + version);
+				Path gameDir = UserData.DIR.resolve("instance-" + version);
 				Files.createDirectories(gameDir);
 				Desktop.getDesktop().open(gameDir.toFile());
 			} catch (Exception e) {

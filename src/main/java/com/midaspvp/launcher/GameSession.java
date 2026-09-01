@@ -15,8 +15,9 @@ final class GameSession {
 	static final String DEFAULT_VERSION = "1.21.11";
 
 	private final Main.Bridge bridge;
-	private final Path launcherHome = Path.of("").toAbsolutePath();
-	private final Path cacheDir = launcherHome.resolve("cache");
+	// Deliberately NOT the app's own install directory — see UserData's javadoc for why.
+	private final Path userDataDir = UserData.DIR;
+	private final Path cacheDir = userDataDir.resolve("cache");
 
 	GameSession(Main.Bridge bridge) {
 		this.bridge = bridge;
@@ -38,8 +39,10 @@ final class GameSession {
 
 	private void run(String username, String version, String serverName, String serverAddress) {
 		try {
+			UserData.migrateFromAppDirIfNeeded();
+
 			// Each Minecraft version gets its own instance folder so worlds/configs/mods don't clash.
-			Path gameDir = launcherHome.resolve("instance-" + version);
+			Path gameDir = userDataDir.resolve("instance-" + version);
 
 			bridge.call("onProgress", "Checking Minecraft " + version + "...", 0, 0);
 			MinecraftInstaller installer = new MinecraftInstaller(version, FABRIC_LOADER_VERSION, cacheDir);

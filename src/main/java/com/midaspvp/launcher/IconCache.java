@@ -21,7 +21,7 @@ import java.time.Duration;
  */
 final class IconCache {
 	private static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(8)).build();
-	private static final Path CACHE_DIR = Path.of("").toAbsolutePath().resolve("cache").resolve("icons");
+	private static final Path CACHE_DIR = UserData.DIR.resolve("cache").resolve("icons");
 
 	/** Blocking — run off the JavaFX thread. Returns a local file:// URI for a re-encoded PNG, or
 	 *  null if the icon couldn't be fetched/decoded (the caller should just show no icon then). */

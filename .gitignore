@@ -6,6 +6,7 @@ dist-exe/
 dist-appimage/
 jpackage-input/
 cache/
+instance-*/
 *.class
 .idea/
 *.iml
