@@ -20,7 +20,9 @@ These mods come pre-installed:
    **MidasPVP**, and bundles its own Java runtime — nothing else to install
 3. Open it from the Start Menu, pick a display name, hit **Play**
 4. First launch downloads Minecraft + Fabric (a few hundred MB) — subsequent launches are fast
-5. Once in-game, press **Esc** → **Account Switcher** to log into your real Microsoft account
+5. Once in-game, go to **Multiplayer** → **Direct Connection** (or the server list) and use the
+   **Account Switcher** button there to log into your real Microsoft account — it's a button on
+   that screen, not in the Esc/pause menu
 
 The launcher checks GitHub Releases on startup and shows an update pill in the top bar if a
 newer version is out; clicking it opens the release page in your browser.
