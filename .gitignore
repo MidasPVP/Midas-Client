@@ -2,8 +2,10 @@
 build/
 run/
 dist-msi/
+dist-exe/
 dist-appimage/
 jpackage-input/
+cache/
 *.class
 .idea/
 *.iml

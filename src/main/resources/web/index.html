@@ -445,7 +445,7 @@
 					<div class="section">
 						<h3>Game</h3>
 						<div class="item" id="tab-java" onclick="showSettings('java')">Java &amp; Memory</div>
-						<div class="item" id="tab-mods" onclick="showSettings('mods')">Bundled Mods</div>
+						<div class="item" id="tab-mods" onclick="showSettings('mods')">Installed Mods</div>
 						<div class="item" id="tab-about" onclick="showSettings('about')">About</div>
 					</div>
 				</div>
@@ -478,18 +478,20 @@
 						</div>
 					</div>
 					<div id="panel-mods" style="display:none">
-						<h2 class="settings-title">Bundled Mods</h2>
-						<div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:12px">For instance: <b id="modsVersionLabel" style="color:var(--gold)">1.21.11</b></div>
+						<h2 class="settings-title">Installed Mods</h2>
+						<div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:12px">For instance: <b id="modsVersionLabel" style="color:var(--gold)">1.21.11</b> — reads the real mods folder, including anything you installed from the mod browser</div>
 						<div class="mods-installed-list" id="modsList"></div>
+						<button class="btn btn-ghost" style="margin-top:14px" onclick="window.midas && window.midas.openGameFolder(currentVersion())">Open Game Folder</button>
 					</div>
 					<div id="panel-about" style="display:none">
 						<h2 class="settings-title">About</h2>
 						<div class="card" style="max-width:460px">
-							<div class="row"><span>Midas Client</span><span id="aboutClientVersion">1.2.1</span></div>
+							<div class="row"><span>Midas Client</span><span id="aboutClientVersion">1.3.0</span></div>
 							<div class="row"><span>Minecraft</span><span id="aboutVersion">1.21.11</span></div>
 							<div class="row"><span>Fabric Loader</span><span>0.19.3</span></div>
 							<div class="row"><span>Supported versions</span><span>1.21.11, 26.1.2, 26.2</span></div>
 						</div>
+						<button class="btn btn-ghost" id="checkUpdateBtn" onclick="manualCheckForUpdates()">Check for Updates</button>
 					</div>
 				</div>
 			</div>
@@ -538,8 +540,17 @@
 	};
 	var activeServer = 'midaspvp';
 
+	// ---- display name persistence (per-viewer, survives closing/reopening the launcher) ----
+	function loadSavedUsername() {
+		try { return localStorage.getItem('midas.username') || 'Player'; } catch (e) { return 'Player'; }
+	}
+	function saveUsername(name) {
+		try { localStorage.setItem('midas.username', name); } catch (e) {}
+	}
+
 	function continueFromWelcome() {
 		var name = document.getElementById('usernameInput').value || 'Player';
+		saveUsername(name);
 		setUsername(name);
 		document.getElementById('welcomeScreen').classList.remove('visible');
 		document.getElementById('appScreen').classList.add('visible');
@@ -565,6 +576,7 @@
 		nameInputTimer = setTimeout(function() {
 			document.getElementById('skinPreview').src = 'https://mc-heads.net/body/' + encodeURIComponent(name) + '/100';
 			queuePlayerStatsFetch(name);
+			saveUsername(name);
 		}, 500);
 	}
 	function logout() {
@@ -581,9 +593,29 @@
 	}
 	function renderModsList(v) {
 		document.getElementById('modsVersionLabel').textContent = v;
-		document.getElementById('modCountBadge').textContent = MODS_BY_VERSION[v].length;
-		document.getElementById('modsList').innerHTML = MODS_BY_VERSION[v].map(function(m) {
-			return '<div class="mod-row"><span class="mod-dot"></span><span class="mod-name">' + m[0] + '</span><span class="mod-ver">' + m[1] + '</span></div>';
+		// Show the known bundle instantly (avoids a "0" flash) — refreshInstalledMods() below
+		// overwrites this with what's actually on disk as soon as that answer comes back.
+		document.getElementById('modCountBadge').textContent = MODS_BY_VERSION[v] ? MODS_BY_VERSION[v].length : 0;
+		refreshInstalledMods();
+	}
+	// ---- installed mods (the real mods/ folder on disk, not a hardcoded list — includes anything
+	// installed via the mod browser too) ----
+	function refreshInstalledMods() {
+		if (!window.midas) return;
+		window.midas.listInstalledMods(currentVersion());
+	}
+	function onInstalledMods(version, json) {
+		if (version !== currentVersion()) return; // stale answer from a version we've since switched away from
+		var names;
+		try { names = JSON.parse(json); } catch (e) { names = []; }
+		document.getElementById('modCountBadge').textContent = names.length;
+		var list = document.getElementById('modsList');
+		if (!names.length) {
+			list.innerHTML = '<div style="color:rgba(255,255,255,0.4);font-size:13px;padding:8px 0">No mods installed yet — install this version once from PLAY first.</div>';
+			return;
+		}
+		list.innerHTML = names.map(function(name) {
+			return '<div class="mod-row"><span class="mod-dot"></span><span class="mod-name">' + name.replace(/</g, '&lt;') + '</span></div>';
 		}).join('');
 	}
 
@@ -775,6 +807,23 @@
 		document.getElementById('updatePill').style.display = 'flex';
 		document.getElementById('updateModalVersion').textContent = 'v' + version;
 	}
+	function manualCheckForUpdates() {
+		if (!window.midas) return;
+		var btn = document.getElementById('checkUpdateBtn');
+		btn.disabled = true;
+		btn.textContent = 'Checking...';
+		window.midas.checkForUpdates();
+		// No explicit "nothing found" callback from Java — infer it from whether the update pill
+		// showed up within a reasonable window for the GitHub API call to finish.
+		setTimeout(function() {
+			btn.disabled = false;
+			btn.textContent = document.getElementById('updatePill').style.display === 'flex'
+				? 'Check for Updates' : "You're up to date";
+			if (btn.textContent === "You're up to date") {
+				setTimeout(function() { btn.textContent = 'Check for Updates'; }, 2500);
+			}
+		}, 4000);
+	}
 	function onUpdateClick() {
 		if (document.getElementById('updateModalVersion').textContent) {
 			document.getElementById('updateModal').classList.add('visible');
@@ -820,10 +869,18 @@
 		appendLog('[error] Failed to install ' + slug + ': ' + message);
 	}
 
-	setUsername('Player');
+	var savedUsername = loadSavedUsername();
+	document.getElementById('usernameInput').value = savedUsername;
+	setUsername(savedUsername);
 	setActiveServer('midaspvp');
 	onVersionChange();
 	renderRecentServers();
+
+	// window.midas doesn't exist yet at this point in the page's first load — this fires once the
+	// Java bridge is actually injected (see Main.java), for anything that needs it on startup.
+	function onBridgeReady() {
+		refreshInstalledMods();
+	}
 </script>
 </body>
 </html>

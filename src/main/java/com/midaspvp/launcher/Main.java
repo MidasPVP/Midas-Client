@@ -32,7 +32,10 @@ public final class Main extends Application {
 			if (newState == Worker.State.SUCCEEDED) {
 				JSObject window = (JSObject) engine.executeScript("window");
 				window.setMember("midas", bridge);
-				checkForUpdateInBackground(bridge);
+				checkForUpdateInBackground(bridge); // runs once automatically whenever the launcher opens
+				// The page's own bottom <script> already ran before this listener fires (window.midas
+				// didn't exist yet), so anything that needs the bridge on first load re-runs from here.
+				engine.executeScript("if (typeof onBridgeReady === 'function') onBridgeReady();");
 			}
 		});
 
@@ -40,16 +43,29 @@ public final class Main extends Application {
 
 		Scene scene = new Scene(webView, 1100, 680);
 		stage.setTitle("Midas Client " + UpdateChecker.APP_VERSION);
+		stage.getIcons().addAll(loadIcons());
 		stage.setScene(scene);
 		stage.show();
 	}
 
-	private void checkForUpdateInBackground(Bridge bridge) {
+	/** Window/taskbar icon at every size JavaFX can pick from — smaller ones are used in the
+	 *  title bar/taskbar, the largest in Alt-Tab/Explorer. Missing files are skipped rather than
+	 *  crashing the launch, since the icon is cosmetic. */
+	private static java.util.List<javafx.scene.image.Image> loadIcons() {
+		java.util.List<javafx.scene.image.Image> icons = new java.util.ArrayList<>();
+		for (int size : new int[] {16, 32, 48, 64, 128, 256}) {
+			var url = Main.class.getResource("/icons/logo-" + size + ".png");
+			if (url != null) icons.add(new javafx.scene.image.Image(url.toExternalForm()));
+		}
+		return icons;
+	}
+
+	private static void checkForUpdateInBackground(Bridge bridge) {
 		Thread thread = new Thread(() -> {
 			UpdateChecker.UpdateInfo update = UpdateChecker.checkForUpdate();
 			if (update == null) return;
 
-			if (update.msiUrl() == null) {
+			if (update.installerUrl() == null) {
 				// No installer attached to the release — just point at the page, nothing to auto-download.
 				bridge.call("onUpdateAvailable", update.version(), update.htmlUrl());
 				return;
@@ -57,8 +73,9 @@ public final class Main extends Application {
 
 			bridge.call("onUpdateDownloading", update.version());
 			try {
-				Path msi = SelfUpdater.downloadInstaller(update);
-				bridge.pendingUpdateInstaller = msi;
+				Path installer = SelfUpdater.downloadInstaller(update);
+				bridge.pendingUpdateInstaller = installer;
+				bridge.pendingUpdateIsExe = update.isExe();
 				bridge.call("onUpdateReady", update.version());
 			} catch (Exception e) {
 				// Download failed - still let them get it manually from the release page.
@@ -73,6 +90,7 @@ public final class Main extends Application {
 	public static final class Bridge {
 		private final WebEngine engine;
 		volatile Path pendingUpdateInstaller;
+		volatile boolean pendingUpdateIsExe;
 
 		Bridge(WebEngine engine) {
 			this.engine = engine;
@@ -101,10 +119,10 @@ public final class Main extends Application {
 
 		/** Called from JS: window.midas.applyUpdate() — installs the already-downloaded update and restarts. */
 		public void applyUpdate() {
-			Path msi = pendingUpdateInstaller;
-			if (msi == null) return;
+			Path installer = pendingUpdateInstaller;
+			if (installer == null) return;
 			try {
-				SelfUpdater.applyAndExit(msi);
+				SelfUpdater.applyAndExit(installer, pendingUpdateIsExe);
 			} catch (Exception e) {
 				call("onLog", "[error] Couldn't launch the updater: " + e.getMessage());
 			}
@@ -146,6 +164,44 @@ public final class Main extends Application {
 			}, "midas-mod-install");
 			thread.setDaemon(true);
 			thread.start();
+		}
+
+		/** Called from JS: window.midas.listInstalledMods(version) — the *actual* jars on disk for that
+		 *  instance (bundled + anything installed via the mod browser), not a hardcoded list. Result
+		 *  comes back via onInstalledMods(version, json). */
+		public void listInstalledMods(String version) {
+			Thread thread = new Thread(() -> {
+				java.util.List<String> names = new java.util.ArrayList<>();
+				Path modsDir = Path.of("").toAbsolutePath().resolve("instance-" + version).resolve("mods");
+				try (var files = Files.list(modsDir)) {
+					files.filter(p -> p.getFileName().toString().endsWith(".jar"))
+							.map(p -> p.getFileName().toString())
+							.sorted(String.CASE_INSENSITIVE_ORDER)
+							.forEach(names::add);
+				} catch (Exception e) {
+					// No mods folder yet (instance never installed) — an empty list is the correct answer.
+				}
+				call("onInstalledMods", version, new Gson().toJson(names));
+			}, "midas-list-mods");
+			thread.setDaemon(true);
+			thread.start();
+		}
+
+		/** Called from JS: window.midas.openGameFolder(version) — opens that instance's folder in Explorer. */
+		public void openGameFolder(String version) {
+			try {
+				Path gameDir = Path.of("").toAbsolutePath().resolve("instance-" + version);
+				Files.createDirectories(gameDir);
+				Desktop.getDesktop().open(gameDir.toFile());
+			} catch (Exception e) {
+				call("onLog", "[error] Couldn't open the game folder: " + e.getMessage());
+			}
+		}
+
+		/** Called from JS: window.midas.checkForUpdates() — same check that already runs automatically
+		 *  on startup, exposed again for a manual "Check for updates" button. */
+		public void checkForUpdates() {
+			checkForUpdateInBackground(this);
 		}
 
 		void call(String function, Object... args) {

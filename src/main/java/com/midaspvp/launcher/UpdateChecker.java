@@ -14,13 +14,14 @@ import java.time.Duration;
 /** Checks GitHub Releases for a newer version than this build. */
 public final class UpdateChecker {
 	/** Must match the --app-version passed to jpackage. */
-	public static final String APP_VERSION = "1.2.1";
+	public static final String APP_VERSION = "1.3.0";
 
 	private static final String LATEST_RELEASE_URL = "https://api.github.com/repos/MidasPVP/Midas-Client/releases/latest";
 	private static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
 
-	/** msiUrl/msiName are null if the release has no .msi asset attached (nothing to auto-download). */
-	public record UpdateInfo(String version, String htmlUrl, String msiUrl, String msiName) {
+	/** installerUrl/installerName are null if the release has no .exe/.msi asset attached (nothing to
+	 *  auto-download). isExe tells SelfUpdater which switches/launch style to apply it with. */
+	public record UpdateInfo(String version, String htmlUrl, String installerUrl, String installerName, boolean isExe) {
 	}
 
 	/** Blocking network call — run off the JavaFX thread. Returns null if up to date or the check fails. */
@@ -41,22 +42,32 @@ public final class UpdateChecker {
 			String htmlUrl = release.has("html_url") ? release.get("html_url").getAsString()
 					: "https://github.com/MidasPVP/Midas-Client/releases/latest";
 
-			String msiUrl = null;
-			String msiName = null;
+			String installerUrl = null;
+			String installerName = null;
+			boolean isExe = false;
 			if (release.has("assets")) {
 				JsonArray assets = release.getAsJsonArray("assets");
+				// Prefer .exe over .msi if a release has both — .exe is the format actually
+				// shipped to players; a release with only .msi still auto-updates fine with it.
 				for (JsonElement el : assets) {
 					JsonObject asset = el.getAsJsonObject();
 					String name = asset.get("name").getAsString();
-					if (name.toLowerCase().endsWith(".msi")) {
-						msiUrl = asset.get("browser_download_url").getAsString();
-						msiName = name;
+					String lower = name.toLowerCase();
+					if (lower.endsWith(".exe")) {
+						installerUrl = asset.get("browser_download_url").getAsString();
+						installerName = name;
+						isExe = true;
 						break;
+					}
+					if (lower.endsWith(".msi") && installerUrl == null) {
+						installerUrl = asset.get("browser_download_url").getAsString();
+						installerName = name;
+						isExe = false;
 					}
 				}
 			}
 
-			return new UpdateInfo(latest, htmlUrl, msiUrl, msiName);
+			return new UpdateInfo(latest, htmlUrl, installerUrl, installerName, isExe);
 		} catch (Exception e) {
 			return null;
 		}
