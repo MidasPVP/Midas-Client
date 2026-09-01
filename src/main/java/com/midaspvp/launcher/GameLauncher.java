@@ -55,6 +55,12 @@ public final class GameLauncher {
 
 		List<String> command = new ArrayList<>();
 		command.add(javaExecutable);
+		// Prefer IPv4 for outgoing connections. A very common real-world cause of "some servers
+		// just time out" reports across the whole Minecraft community: the JVM tries a server's
+		// IPv6 address first when one exists, and on a network where IPv6 is enabled but not
+		// actually routed properly, that attempt hangs until timeout before ever falling back to
+		// the IPv4 address that would have worked immediately.
+		command.add("-Djava.net.preferIPv4Stack=true");
 		command.addAll(resolveArgs(install.jvmArgs, placeholders, features));
 		command.add(install.mainClass);
 		command.addAll(resolveArgs(install.gameArgs, placeholders, features));
