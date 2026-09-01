@@ -120,8 +120,13 @@
 	.account .sub { font-size: 11px; color: rgba(255,255,255,0.40); }
 
 	/* ---- pages ---- */
-	.page { display: none; flex: 1; min-height: 0; flex-direction: column; }
-	.page.visible { display: flex; }
+	.pages-container { position: relative; flex: 1; min-height: 0; }
+	.page {
+		position: absolute; inset: 0; display: flex; flex-direction: column; min-height: 0;
+		opacity: 0; pointer-events: none; transform: translateY(6px);
+		transition: opacity .22s ease, transform .22s ease;
+	}
+	.page.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
 
 	/* home / server pages */
 	.server-tabs { display: flex; gap: 8px; margin-bottom: 18px; align-items: center; }
@@ -164,6 +169,8 @@
 	.hero-progress .bar-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #FFD700, #DAA520); border-radius: 9999px; transition: width .2s; }
 	.hero-progress .stage-text { color: rgba(255,255,255,0.75); font-size: 12px; font-weight: 600; white-space: nowrap; }
 	.hero-progress .pct-text { color: rgba(255,215,0,0.85); font-size: 12px; font-weight: 700; white-space: nowrap; }
+	@keyframes heroProgressFadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+	.hero-progress.pulse-in { animation: heroProgressFadeIn .4s ease; }
 
 	.play-row { display: flex; justify-content: center; }
 	.play-btn {
@@ -245,18 +252,49 @@
 
 	/* ---- mods page ---- */
 	#modsPage { padding-right: 4px; }
-	.mods-search { display: flex; gap: 10px; margin-bottom: 18px; }
-	.mods-search input { flex: 1; }
-	.mods-search .version-select { flex-shrink: 0; }
+	.mods-subtabs { display: flex; gap: 8px; margin-bottom: 16px; flex-shrink: 0; }
+	.mods-sub-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+
+	/* ---- manage (installed) mods sub-tab ---- */
+	.mods-manage-list { flex: 1; overflow-y: auto; }
+
+	/* ---- browse (Modrinth) sub-tab ---- */
+	.mods-browse-layout { display: flex; gap: 20px; flex: 1; min-height: 0; }
+	.mods-sidebar { width: 180px; flex-shrink: 0; overflow-y: auto; padding-right: 4px; }
+	.mods-sidebar-title { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.30); margin-bottom: 10px; }
+	.category-item {
+		display: flex; align-items: center; gap: 9px; padding: 6px 4px; font-size: 12px; color: rgba(255,255,255,0.65);
+		cursor: pointer; user-select: none; border-radius: 6px;
+	}
+	.category-item:hover { color: #fff; background: rgba(255,255,255,0.04); }
+	.category-item input[type=checkbox] { accent-color: var(--gold); width: 14px; height: 14px; cursor: pointer; }
+
+	.mods-browse-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+	.mods-search-row { display: flex; gap: 10px; margin-bottom: 14px; flex-shrink: 0; }
+	.mods-search-row input { flex: 1; }
+	.mods-search-row select {
+		background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;
+		padding: 0 14px; color: rgba(255,255,255,0.80); font-size: 13px; font-family: inherit; cursor: pointer; outline: none;
+	}
 	.mod-result-list { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; flex: 1; }
 	.mod-result {
 		display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
-		border-radius: 14px; padding: 12px 16px;
+		border-radius: 14px; padding: 12px 16px; transition: background .15s, border-color .15s; animation: modRowIn .25s ease backwards;
 	}
-	.mod-result img { width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,0.05); flex-shrink: 0; }
+	.mod-result:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.10); }
+	@keyframes modRowIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+	.mod-result img { width: 44px; height: 44px; border-radius: 10px; background: rgba(255,255,255,0.05); flex-shrink: 0; object-fit: cover; }
 	.mod-result .info { flex: 1; min-width: 0; }
+	.mod-result .info .title-row { display: flex; align-items: baseline; gap: 7px; }
 	.mod-result .info .title { font-size: 13px; font-weight: 700; color: #fff; }
-	.mod-result .info .desc { font-size: 11px; color: rgba(255,255,255,0.45); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	.mod-result .info .author { font-size: 11px; color: rgba(255,255,255,0.40); }
+	.mod-result .info .desc { font-size: 11px; color: rgba(255,255,255,0.45); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 2px 0 5px; }
+	.mod-result .tag-row { display: flex; gap: 6px; flex-wrap: wrap; }
+	.mod-tag {
+		font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 9999px; text-transform: capitalize;
+		background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.45); border: 1px solid rgba(255,255,255,0.08);
+	}
+	.mod-tag.loader { background: rgba(255,215,0,0.08); color: rgba(255,215,0,0.75); border-color: rgba(255,215,0,0.18); }
 	.mod-result button {
 		flex-shrink: 0; background: rgba(255,215,0,0.12); border: 1px solid rgba(255,215,0,0.30); color: var(--gold);
 		border-radius: 9999px; padding: 8px 18px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit;
@@ -365,6 +403,7 @@
 				</div>
 			</div>
 
+			<div class="pages-container">
 			<!-- ===== HOME / FEATURED SERVERS PAGE ===== -->
 			<div class="page visible" id="homePage">
 				<div class="server-tabs">
@@ -383,7 +422,7 @@
 							<div class="hero-content">
 								<span class="hero-server" id="heroServer">MidasPVP · midaspvp.com</span>
 								<span class="hero-version" id="heroVersion">1.21.11</span>
-								<div class="hero-progress">
+								<div class="hero-progress" id="heroProgress">
 									<span class="stage-text" id="progressStage">Ready to play</span>
 									<div class="bar-bg"><div class="bar-fill" id="progressFill"></div></div>
 									<span class="pct-text" id="progressCount"></span>
@@ -427,12 +466,40 @@
 
 			<!-- ===== MODS PAGE ===== -->
 			<div class="page" id="modsPage">
-				<div class="mods-search">
-					<input class="glossy-input" style="margin-bottom:0" type="text" id="modSearchInput" placeholder="Search Modrinth mods..." onkeydown="if(event.key==='Enter') searchMods()">
-					<button class="btn btn-gold" onclick="searchMods()">SEARCH</button>
+				<div class="mods-subtabs">
+					<button class="server-tab active" id="modsSubTab-manage" onclick="showModsSubTab('manage')">Manage Mods</button>
+					<button class="server-tab" id="modsSubTab-browse" onclick="showModsSubTab('browse')">Modrinth</button>
 				</div>
-				<div class="settings-title" style="font-size:14px;color:rgba(255,255,255,0.4);margin-bottom:10px">Search results for the currently selected version</div>
-				<div class="mod-result-list" id="modResultList"></div>
+
+				<div class="mods-sub-panel" id="modsPanel-manage">
+					<div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:12px">For instance: <b id="modsVersionLabelPage" style="color:var(--gold)">1.21.11</b> — the real mods folder, including anything installed from Modrinth</div>
+					<div class="mods-installed-list mods-manage-list" id="modsListPage"></div>
+					<button class="btn btn-ghost" style="margin-top:14px;width:fit-content" onclick="window.midas && window.midas.openGameFolder(currentVersion())">Open Game Folder</button>
+				</div>
+
+				<div class="mods-sub-panel" id="modsPanel-browse" style="display:none">
+					<div class="mods-browse-layout">
+						<aside class="mods-sidebar">
+							<div class="mods-sidebar-title">Categories</div>
+							<button class="btn btn-ghost" style="width:100%;margin-bottom:12px;padding:9px" onclick="clearModFilters()">Clear Filters</button>
+							<div id="categoryList"></div>
+						</aside>
+						<div class="mods-browse-main">
+							<div class="mods-search-row">
+								<input class="glossy-input" style="margin-bottom:0" type="text" id="modSearchInput" placeholder="Search Modrinth mods..." oninput="queueModSearch()" onkeydown="if(event.key==='Enter'){event.preventDefault();searchMods();}">
+								<select id="modSortSelect" onchange="searchMods()">
+									<option value="relevance">Relevance</option>
+									<option value="downloads">Downloads</option>
+									<option value="follows">Follows</option>
+									<option value="newest">Newest</option>
+									<option value="updated">Recently updated</option>
+								</select>
+								<button class="btn btn-gold" onclick="searchMods()">SEARCH</button>
+							</div>
+							<div class="mod-result-list" id="modResultList"></div>
+						</div>
+					</div>
+				</div>
 			</div>
 
 			<!-- ===== SETTINGS PAGE ===== -->
@@ -486,7 +553,7 @@
 					<div id="panel-about" style="display:none">
 						<h2 class="settings-title">About</h2>
 						<div class="card" style="max-width:460px">
-							<div class="row"><span>Midas Client</span><span id="aboutClientVersion">1.3.3</span></div>
+							<div class="row"><span>Midas Client</span><span id="aboutClientVersion">1.4.0</span></div>
 							<div class="row"><span>Minecraft</span><span id="aboutVersion">1.21.11</span></div>
 							<div class="row"><span>Fabric Loader</span><span>0.19.3</span></div>
 							<div class="row"><span>Supported versions</span><span>1.21.11, 26.1.2, 26.2</span></div>
@@ -494,6 +561,7 @@
 						<button class="btn btn-ghost" id="checkUpdateBtn" onclick="manualCheckForUpdates()">Check for Updates</button>
 					</div>
 				</div>
+			</div>
 			</div>
 		</main>
 	</div>
@@ -609,14 +677,16 @@
 		var names;
 		try { names = JSON.parse(json); } catch (e) { names = []; }
 		document.getElementById('modCountBadge').textContent = names.length;
-		var list = document.getElementById('modsList');
-		if (!names.length) {
-			list.innerHTML = '<div style="color:rgba(255,255,255,0.4);font-size:13px;padding:8px 0">No mods installed yet — install this version once from PLAY first.</div>';
-			return;
-		}
-		list.innerHTML = names.map(function(name) {
-			return '<div class="mod-row"><span class="mod-dot"></span><span class="mod-name">' + name.replace(/</g, '&lt;') + '</span></div>';
-		}).join('');
+		document.getElementById('modsVersionLabelPage').textContent = version;
+		var html = !names.length
+			? '<div style="color:rgba(255,255,255,0.4);font-size:13px;padding:8px 0">No mods installed yet — install this version once from PLAY first.</div>'
+			: names.map(function(name) {
+				return '<div class="mod-row"><span class="mod-dot"></span><span class="mod-name">' + name.replace(/</g, '&lt;') + '</span></div>';
+			}).join('');
+		// Same data renders in both the Mods > Manage Mods tab and the old Settings > Installed
+		// Mods panel — whichever the player has open.
+		document.getElementById('modsList').innerHTML = html;
+		document.getElementById('modsListPage').innerHTML = html;
 	}
 
 	// Clicking a tab that's already active un-ticks it (PLAY won't touch the server list); clicking a different
@@ -721,6 +791,16 @@
 	}
 	function showHome() { showPage('homePage'); setActiveNav('navHome'); }
 	function showMods() { showPage('modsPage'); setActiveNav('navMods'); }
+	function showModsSubTab(tab) {
+		['manage', 'browse'].forEach(function(t) {
+			document.getElementById('modsSubTab-' + t).classList.toggle('active', t === tab);
+			document.getElementById('modsPanel-' + t).style.display = (t === tab) ? 'flex' : 'none';
+		});
+		if (tab === 'browse' && !categoryListRendered) {
+			renderCategoryList();
+			searchMods();
+		}
+	}
 	function showSettings(tab) {
 		showPage('settingsPage'); setActiveNav('navSettings');
 		['profile','java','mods','about'].forEach(function(t) {
@@ -729,6 +809,14 @@
 		});
 	}
 
+	// Re-triggerable fade-in for the hero progress row (removing then re-adding the class forces
+	// a reflow so the animation plays again even if it just played, e.g. clicking PLAY twice).
+	function playFadeIn() {
+		var el = document.getElementById('heroProgress');
+		el.classList.remove('pulse-in');
+		void el.offsetWidth;
+		el.classList.add('pulse-in');
+	}
 	function onPlay() {
 		var server = SERVERS[activeServer];
 		if (server && server.address) launch(server.title, server.address);
@@ -747,6 +835,7 @@
 		btn.disabled = true;
 		document.getElementById('logContent').textContent = '';
 		document.getElementById('progressStage').textContent = 'Preparing...';
+		playFadeIn();
 		var username = document.getElementById('usernameInput2').value || document.getElementById('usernameInput').value || 'Player';
 		var version = currentVersion();
 		if (!window.midas) { appendLog('[error] Java bridge not available'); return; }
@@ -833,22 +922,64 @@
 	}
 
 	// ---- called from Java: mod browser ----
+	var MOD_CATEGORIES = ['adventure','cursed','decoration','economy','equipment','food','game-mechanics','library',
+		'magic','management','minigame','mobs','optimization','social','storage','technology','transportation','utility','worldgen'];
+	var activeCategories = [];
+	var categoryListRendered = false;
+
+	function categoryLabel(slug) {
+		return slug.split('-').map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' ');
+	}
+	function renderCategoryList() {
+		categoryListRendered = true;
+		document.getElementById('categoryList').innerHTML = MOD_CATEGORIES.map(function(c) {
+			var checked = activeCategories.indexOf(c) !== -1;
+			return '<label class="category-item"><input type="checkbox" ' + (checked ? 'checked' : '') +
+				' onchange="onCategoryToggle(\'' + c + '\', this.checked)"> ' + categoryLabel(c) + '</label>';
+		}).join('');
+	}
+	function onCategoryToggle(cat, checked) {
+		if (checked) { if (activeCategories.indexOf(cat) === -1) activeCategories.push(cat); }
+		else { activeCategories = activeCategories.filter(function(c) { return c !== cat; }); }
+		searchMods();
+	}
+	function clearModFilters() {
+		activeCategories = [];
+		document.getElementById('modSearchInput').value = '';
+		document.getElementById('modSortSelect').value = 'relevance';
+		renderCategoryList();
+		searchMods();
+	}
+
+	var modSearchTimer = null;
+	function queueModSearch() {
+		clearTimeout(modSearchTimer);
+		modSearchTimer = setTimeout(searchMods, 400);
+	}
 	function searchMods() {
+		if (!window.midas) return;
 		var q = document.getElementById('modSearchInput').value.trim();
-		if (!q || !window.midas) return;
+		var sort = document.getElementById('modSortSelect').value;
 		document.getElementById('modResultList').innerHTML = '<div style="color:rgba(255,255,255,0.4);font-size:13px">Searching...</div>';
-		window.midas.searchMods(q, currentVersion());
+		window.midas.searchMods(q, currentVersion(), activeCategories.join(','), sort);
 	}
 	function onSearchResults(json) {
 		var results;
 		try { results = JSON.parse(json); } catch (e) { results = []; }
 		var list = document.getElementById('modResultList');
 		if (!results.length) { list.innerHTML = '<div style="color:rgba(255,255,255,0.4);font-size:13px">No results.</div>'; return; }
-		list.innerHTML = results.map(function(m) {
+		list.innerHTML = results.map(function(m, i) {
 			var safeTitle = m.title.replace(/'/g, "&#39;");
-			return '<div class="mod-result">' +
+			var tags = (m.categories || []).map(function(c) { return '<span class="mod-tag">' + categoryLabel(c) + '</span>'; })
+				.concat((m.loaders || []).map(function(l) { return '<span class="mod-tag loader">' + categoryLabel(l) + '</span>'; }))
+				.join('');
+			return '<div class="mod-result" style="animation-delay:' + Math.min(i * 25, 200) + 'ms">' +
 				'<img src="' + (m.iconUrl || '') + '" onerror="this.style.display=\'none\'">' +
-				'<div class="info"><div class="title">' + safeTitle + '</div><div class="desc">' + m.description.replace(/</g,'&lt;') + '</div></div>' +
+				'<div class="info">' +
+					'<div class="title-row"><span class="title">' + safeTitle + '</span>' + (m.author ? '<span class="author">by ' + m.author.replace(/</g,'&lt;') + '</span>' : '') + '</div>' +
+					'<div class="desc">' + (m.description || '').replace(/</g,'&lt;') + '</div>' +
+					'<div class="tag-row">' + tags + '</div>' +
+				'</div>' +
 				'<button onclick="installMod(\'' + m.slug + '\', this)">INSTALL</button>' +
 				'</div>';
 		}).join('');

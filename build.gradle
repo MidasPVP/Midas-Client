@@ -16,6 +16,11 @@ dependencies {
 	implementation "org.openjfx:javafx-controls:${jfxVersion}:win"
 	implementation "org.openjfx:javafx-web:${jfxVersion}:win"
 	implementation "org.openjfx:javafx-media:${jfxVersion}:win"
+	// JavaFX's WebView can't decode WebP (confirmed — it silently fails to render). Modrinth serves
+	// mod icons as WebP, so this pure-Java decoder (no native libs) is used to re-encode them as PNG
+	// before handing them to the page. See IconCache.java.
+	implementation 'com.twelvemonkeys.imageio:imageio-webp:3.14.0'
+	implementation 'com.twelvemonkeys.imageio:imageio-core:3.14.0'
 }
 
 java {
@@ -35,6 +40,10 @@ shadowJar {
 	manifest {
 		attributes 'Main-Class': 'com.midaspvp.launcher.Launcher'
 	}
+	// Without this, Shadow lets one dependency's META-INF/services/javax.imageio.spi.* files
+	// clobber another's during the merge instead of concatenating them, silently breaking
+	// ImageIO's plugin auto-discovery (the WebP decoder specifically).
+	mergeServiceFiles()
 }
 
 tasks.build {

@@ -128,12 +128,13 @@ public final class Main extends Application {
 			}
 		}
 
-		/** Called from JS: window.midas.searchMods(query, version) — results come back via onSearchResults(json). */
-		public void searchMods(String query, String version) {
+		/** Called from JS: window.midas.searchMods(query, version, category, sortIndex) — results come
+		 *  back via onSearchResults(json). category/sortIndex may be empty strings for "no filter"/default. */
+		public void searchMods(String query, String version, String category, String sortIndex) {
 			Thread thread = new Thread(() -> {
 				String json;
 				try {
-					json = new Gson().toJson(ModrinthBrowser.search(query, version));
+					json = new Gson().toJson(ModrinthBrowser.search(query, version, category, sortIndex));
 				} catch (Exception e) {
 					json = "[]";
 				}
