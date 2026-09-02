@@ -554,7 +554,7 @@
 					<div id="panel-about" style="display:none">
 						<h2 class="settings-title">About</h2>
 						<div class="card" style="max-width:460px">
-							<div class="row"><span>Midas Client</span><span id="aboutClientVersion">1.4.9</span></div>
+							<div class="row"><span>Midas Client</span><span id="aboutClientVersion">1.4.10</span></div>
 							<div class="row"><span>Minecraft</span><span id="aboutVersion">1.21.11</span></div>
 							<div class="row"><span>Fabric Loader</span><span>0.19.3</span></div>
 							<div class="row"><span>Supported versions</span><span>1.21.11, 26.1.2, 26.2</span></div>
@@ -1007,6 +1007,16 @@
 	setActiveServer('midaspvp');
 	onVersionChange();
 	renderRecentServers();
+
+	// Skip the welcome screen once a name has actually been chosen before — check localStorage
+	// directly rather than savedUsername, since that falls back to the literal string "Player"
+	// when nothing's been saved yet, which would otherwise skip the screen on every first run too.
+	var hasSavedName = false;
+	try { hasSavedName = !!localStorage.getItem('midas.username'); } catch (e) {}
+	if (hasSavedName) {
+		document.getElementById('welcomeScreen').classList.remove('visible');
+		document.getElementById('appScreen').classList.add('visible');
+	}
 
 	// window.midas doesn't exist yet at this point in the page's first load — this fires once the
 	// Java bridge is actually injected (see Main.java), for anything that needs it on startup.
