@@ -26,6 +26,11 @@ public final class Main extends Application {
 	public void start(Stage stage) {
 		WebView webView = new WebView();
 		WebEngine engine = webView.getEngine();
+		// Without this, WebView falls back to JavaFX's own auto-resolved app data directory, which
+		// isn't guaranteed stable across app restarts or installer updates — the exact same class of
+		// bug UserData.DIR was introduced to avoid for game saves/mods. Everything WebView persists
+		// (localStorage, notably the player's saved display name) needs the same stable home.
+		engine.setUserDataDirectory(UserData.DIR.resolve("webview").toFile());
 		Bridge bridge = new Bridge(engine);
 
 		engine.getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
