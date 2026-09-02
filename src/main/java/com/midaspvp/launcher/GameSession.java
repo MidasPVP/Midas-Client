@@ -67,7 +67,8 @@ final class GameSession {
 			bridge.call("onProgress", "Launching...", 0, 0);
 			String javaExe = System.getProperty("java.home") + java.io.File.separator + "bin" + java.io.File.separator + "javaw.exe";
 			if (!new java.io.File(javaExe).isFile()) {
-				javaExe = System.getProperty("java.home") + java.io.File.separator + "bin" + java.io.File.separator + "java";
+				// java.exe, not "java" — a bare extensionless name isn't a runnable Windows executable.
+				javaExe = System.getProperty("java.home") + java.io.File.separator + "bin" + java.io.File.separator + "java.exe";
 			}
 			Process process = GameLauncher.launch(result, gameDir, cacheDir.resolve("natives").resolve(version), javaExe, username);
 			bridge.call("onLaunched");
